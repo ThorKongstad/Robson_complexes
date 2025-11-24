@@ -1,7 +1,6 @@
-#partition=katla
-#nprocshared=32
+#partition=main
+#nprocshared=16
 #mem=2300MB
-#constrain='[v1|v2|v3|v4|v5]'
 
 import argparse
 import os
@@ -37,10 +36,6 @@ def main(db_id: int, db_dir: str = 'molreact.db'):
         dft_calc_pickle = eval(row.data.get('dft_calc_pickle'))
 
     parprint(f'outstd of opt calculation for db entry {db_id} with structure: {structure_str}, adsorbate: {adsorbate_str} and functional: {functional}')
-
-    if not grid_spacing:
-        grid_spacing = 0.16
-        parprint('grid spacing could not be found in the database entry and was set to 0.16')
 
     functional_folder = sanitize(functional)
     if world.rank == 0: folder_exist(functional_folder)
