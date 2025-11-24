@@ -51,4 +51,4 @@ if __name__ == '__main__':
     parser.add_argument('--dftd4', '-d4', action='store_true')
     args = parser.parse_args()
 
-    main(traj_structure=args.struc_traj, structure_str=args.struc_str, functional_str=args.functional, adsorbate_str=args.adsorbate_str, db_dir=args.db, grid_spacing=args.grid_spacing, charge=args.charge, spinpol=args.spinpol, dftd4_bool=args.dft4)
+    main(traj_structure=args.struc_traj, structure_str=args.struc_str, functional_str=args.functional, adsorbate_str=args.adsorbate_str, db_dir=args.db, grid_spacing=args.grid_spacing, charge=args.charge, spinpol=args.spinpol, dftd4_bool=args.dftd4)
