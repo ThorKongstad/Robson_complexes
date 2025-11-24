@@ -13,7 +13,7 @@ from gpaw import FermiDirac, PoissonSolver, Mixer, MixerFull
 from gpaw.utilities import h2gpts
 
 
-def main(traj_structure:str, structure_str: str, functional_str: str,  db_dir: str, grid_spacing: float = 0.16, charge: float = 0, spinpol: bool = False, adsorbate_str: Optional[str] = None):
+def main(traj_structure:str, structure_str: str, functional_str: str,  db_dir: str, grid_spacing: float = 0.16, charge: float = 0, spinpol: bool = False, adsorbate_str: Optional[str] = None, dftd4_bool: bool = False ):
     atoms: Atoms = read(traj_structure)
 
 
@@ -35,7 +35,7 @@ def main(traj_structure:str, structure_str: str, functional_str: str,  db_dir: s
     calc_pickle = str(pickle.dumps(calc_par_dict))
 
     with db.connect(db_dir) as db_obj:
-        db_obj.write(atoms=atoms, xc=functional_str, structure_str=structure_str, adsorbate_str=(adsorbate_str if adsorbate_str is not None else 'NaN'), relaxed=False, vibration=False, grid_spacing=grid_spacing, data=dict(calc_pickle=calc_pickle))
+        db_obj.write(atoms=atoms, xc=functional_str, structure_str=structure_str, adsorbate_str=(adsorbate_str if adsorbate_str is not None else 'NaN'), relaxed=False, vibration=False, grid_spacing=grid_spacing, dftd4=dftd4_bool, data=dict(dft_calc_pickle=calc_pickle))
 
 
 if __name__ == '__main__':
@@ -48,6 +48,7 @@ if __name__ == '__main__':
     parser.add_argument('--grid_spacing', '-g', default=0.16)
     parser.add_argument('--charge', '-c', default=0)
     parser.add_argument('--spinpol', '-s', action='store_true', help='sets spinpol to be true, spinpol will always be true if charge != 0')
+    parser.add_argument('--dftd4', '-d4', action='store_true')
     args = parser.parse_args()
 
-    main(traj_structure=args.struc_traj, structure_str=args.struc_str, functional_str=args.functional, adsorbate_str=args.adsorbate_str, db_dir=args.db, grid_spacing=args.grid_spacing, charge=args.charge, spinpol=args.spinpol)
+    main(traj_structure=args.struc_traj, structure_str=args.struc_str, functional_str=args.functional, adsorbate_str=args.adsorbate_str, db_dir=args.db, grid_spacing=args.grid_spacing, charge=args.charge, spinpol=args.spinpol, dftd4_bool=args.dft4)
