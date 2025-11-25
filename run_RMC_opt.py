@@ -31,16 +31,18 @@ def main(db_id: int, db_dir: str = 'molreact.db'):
         functional = row.get('xc')
         structure_str = row.get('structure_str')
         adsorbate_str = row.get('adsorbate_str')
-        grid_spacing= row.get('grid_spacing')
         dftd4_bool = row.get('dftd4')
         dft_calc_pickle = eval(row.data.get('dft_calc_pickle'))
 
     parprint(f'outstd of opt calculation for db entry {db_id} with structure: {structure_str}, adsorbate: {adsorbate_str} and functional: {functional}')
 
-    functional_folder = sanitize(functional)
+    functional_folder = sanitize(functional) + ('_D4' if dftd4_bool else '')
     if world.rank == 0: folder_exist(functional_folder)
 
-    if dftd4_bool: calc = SumCalculator([DFTD4(method=functional), GPAW(**pickle.loads(dft_calc_pickle))])
+    dft_calc_dict = pickle.loads(dft_calc_pickle)
+    dft_calc_dict['txt'] = f'{functional_folder}/opt_id{db_id}_{structure_str}_{adsorbate_str}.txt'
+
+    if dftd4_bool: calc = SumCalculator([DFTD4(method=functional), GPAW(**dft_calc_dict)])
     else: calc = GPAW(**pickle.loads(dft_calc_pickle))
 
     atoms.set_calculator(calc)

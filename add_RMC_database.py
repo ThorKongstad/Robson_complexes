@@ -27,7 +27,7 @@ def main(traj_structure:str, structure_str: str, functional_str: str,  db_dir: s
         mixer=MixerFull(beta=0.05, nmaxold=5, weight=50),
         charge=charge,
         setups={'O': ':p,8.9,0', 'N': ':p,6.0,0', 'Fe': ':d,4.1,0', 'Co': ':d,4.4,0'},
-        txt=f'{functional_str}/{structure_str}'+'.txt',
+        txt=f'{functional_str}/{structure_str}_{adsorbate_str}'+'.txt',
     )
 
     #atoms.set_calculator(calc_par_dict)
