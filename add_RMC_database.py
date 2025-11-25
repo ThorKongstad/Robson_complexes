@@ -21,7 +21,7 @@ def main(traj_structure:str, structure_str: str, functional_str: str,  db_dir: s
         xc=functional_str,
         basis='dzp',
         mode={'name': 'pw', 'ecut': 500, 'force_complex_dtype': True},
-        gpts=h2gpts(0.16, atoms.get_cell(), idiv=4),
+        gpts=h2gpts(grid_spacing, atoms.get_cell(), idiv=4),
         parallel={'augment_grids': True, 'sl_auto': True},
         spinpol=charge != 0 or spinpol,
         mixer=MixerFull(beta=0.05, nmaxold=5, weight=50),
@@ -45,8 +45,8 @@ if __name__ == '__main__':
     parser.add_argument('functional',help='str denoting what functional to calculate with')
     parser.add_argument('db',help='name or directory for the database.')
     parser.add_argument('--adsorbate_str', '-ad')
-    parser.add_argument('--grid_spacing', '-g', default=0.16)
-    parser.add_argument('--charge', '-c', default=0)
+    parser.add_argument('--grid_spacing', '-g', type=float, default=0.16)
+    parser.add_argument('--charge', '-c', default=0, type=float)
     parser.add_argument('--spinpol', '-s', action='store_true', help='sets spinpol to be true, spinpol will always be true if charge != 0')
     parser.add_argument('--dftd4', '-d4', action='store_true')
     args = parser.parse_args()
