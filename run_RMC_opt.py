@@ -68,4 +68,4 @@ if __name__ == '__main__':
     parser.add_argument('--fmax', '-fm', default=0.3, type=float, nargs='+', help='state the fmax to use and if multiple runs the optimisation sequentially for each maximum force.')
     args = parser.parse_args()
 
-    main(args.data_base_id, args.database)
+    main(args.data_base_id, args.database, fmax=args.fmax)
