@@ -20,7 +20,6 @@ from gpaw.utilities import h2gpts
 from dftd4.ase import DFTD4
 
 
-
 def main(db_id: int, db_dir: str, fmax: float = 0.3):
 
     # read from  database
@@ -40,19 +39,14 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3):
     if world.rank == 0: folder_exist(functional_folder)
 
     dft_calc_dict = pickle.loads(dft_calc_pickle)
-    dft_calc_dict['txt'] = f'{functional_folder}/opt_id{db_id}_{structure_str}_{adsorbate_str}.txt'
-
-    if dftd4_bool: calc = SumCalculator([DFTD4(method=functional), GPAW(**dft_calc_dict)])
-    else: calc = GPAW(**pickle.loads(dft_calc_pickle))
-
-    atoms.set_calculator(calc)
 
     if isinstance(fmax, float) or isinstance(fmax, int): fmax = [fmax]
     for i, fm in enumerate(fmax):
         parprint(f'Starting {i+1} opt calculations with fmax={fm}')
-        if isinstance(atoms.calc, SumCalculator):
-            atoms.calc.mixer.calcs[1].txt = f'{functional_folder}/opt_id{db_id}_{structure_str}_{adsorbate_str}_{fm}fm.txt'
-        else: atoms.calc.txt = f'{functional_folder}/opt_id{db_id}_{structure_str}_{adsorbate_str}_{fm}fm.txt'
+        dft_calc_dict['txt'] = f'{functional_folder}/opt_id{db_id}_{structure_str}_{adsorbate_str}_{fm}fm.txt'
+        if dftd4_bool: calc = SumCalculator([DFTD4(method=functional), GPAW(**dft_calc_dict)])
+        else: calc = GPAW(**pickle.loads(dft_calc_pickle))
+        atoms.set_calculator(calc)
         barrier()
         # define optimizer
         dyn = GPMin(atoms, trajectory=None)
