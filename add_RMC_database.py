@@ -17,8 +17,11 @@ def main(traj_structure: str, structure_str: str, functional_str: str,  db_dir: 
     atoms: Atoms = read(traj_structure)
 
     if reset_spin:
-        initial_magnetic_moments = [4.0 if i == 0 and a.symbol in ['Co', 'Fe'] else -4.0 if i == 1 and a.symbol in ['Co', 'Fe'] else 0.0 for i, a in enumerate(atoms)]
+        initial_magnetic_moments = [4.0 * (-1 if i % 2 else 1) if a.symbol in ['Co', 'Fe'] else 0.0 for i, a in enumerate(atoms)]
         atoms.set_initial_magnetic_moments(initial_magnetic_moments)
+
+#    if charge != 0:
+#        atoms.set_initial_charges()
 
     hubberd_U_dict = dict(setups={'O': ':p,8.9,0', 'N': ':p,6.0,0', 'Fe': ':d,4.1,0', 'Co': ':d,4.4,0'}) if hubberd_U else {}
 
@@ -38,7 +41,7 @@ def main(traj_structure: str, structure_str: str, functional_str: str,  db_dir: 
     calc_pickle = str(pickle.dumps(calc_par_dict))
 
     with db.connect(db_dir) as db_obj:
-        db_obj.write(atoms=atoms, xc=functional_str, structure_str=structure_str, adsorbate_str=(adsorbate_str if adsorbate_str is not None else 'None'), relaxed=False, vibration=False, grid_spacing=grid_spacing, dftd4=dftd4_bool, data=dict(dft_calc_pickle=calc_pickle))
+        db_obj.write(atoms=atoms, xc=functional_str, structure_str=structure_str, adsorbate_str=(adsorbate_str if adsorbate_str is not None else 'None'), relaxed=False, vibration=False, grid_spacing=grid_spacing, gpaw_charge=charge, dftd4=dftd4_bool, data=dict(dft_calc_pickle=calc_pickle))
 
 
 if __name__ == '__main__':
