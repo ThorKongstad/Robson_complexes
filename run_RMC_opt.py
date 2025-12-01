@@ -12,7 +12,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
 from Robson_complexes import sanitize, folder_exist, update_db
 
 import numpy as np
-from ase.optimize import GPMin
+from ase.optimize import GPMin, BFGS
 import ase.db as db
 from ase.calculators.mixing import SumCalculator
 from ase.parallel import parprint, world, barrier
@@ -67,7 +67,8 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3):
     else: goals = fmax
 
     # define optimizer
-    dyn = GPMin(atoms, trajectory=None)
+    #dyn = GPMin(atoms, trajectory=None)
+    dyn = BFGS(atoms, trajectory=None)
     if len(fmax) > 1: dyn.attach(optimiser_observer,
                                  atoms=atoms,
                                  db_dir=db_dir,
