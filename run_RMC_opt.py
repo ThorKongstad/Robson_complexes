@@ -1,6 +1,6 @@
 #partition=main
-#nprocshared=16
-#mem=2300MB
+#nprocshared=32
+#mem=4000MB
 
 import argparse
 import os
@@ -24,7 +24,7 @@ from dftd4.ase import DFTD4
 
 def optimiser_observer(atoms: Atoms, db_dir: str, db_id: int, goals: list[float]) -> None:
     global next_goal
-    if next_goal == goals[0] and max([np.linalg.norm(force) for force in atoms.get_forces()]):
+    if next_goal != goals[0] and max([np.linalg.norm(force) for force in atoms.get_forces()]):
         next_goal = [goal for goal in goals if goal < next_goal][-1]
         if world.rank == 0: update_db(db_dir, dict(id=db_id, atoms=atoms.copy(), relaxed=True, vibration=False, vib_en=False))
 
@@ -60,7 +60,9 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3):
 
     if len(fmax) > 1:
         global next_goal
-        goals = [goal for goal in fmax if goal < initial_fmax]
+        if initial_fmax:
+            goals = [goal for goal in fmax if goal < initial_fmax]
+        else: goals = fmax
         next_goal = fmax[-1]
     else: goals = fmax
 
@@ -70,7 +72,8 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3):
                                  atoms=atoms,
                                  db_dir=db_dir,
                                  db_id=db_id,
-                                 goals=goals)
+                                 goals=goals
+                                 )
     barrier()
     # run relaxation to a maximum force of 0.03 eV / Angstroms
     dyn.run(fmax=goals[0])
