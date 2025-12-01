@@ -11,6 +11,7 @@ import pickle
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
 from Robson_complexes import sanitize, folder_exist, update_db
 
+import numpy as np
 from ase.optimize import GPMin
 import ase.db as db
 from ase.calculators.mixing import SumCalculator
@@ -19,6 +20,13 @@ from ase import Atoms
 from gpaw import GPAW, PW, Davidson
 from gpaw.utilities import h2gpts
 from dftd4.ase import DFTD4
+
+
+def optimiser_observer(atoms: Atoms, db_dir: str, db_id: int, goals: list[float]) -> None:
+    global next_goal
+    if next_goal == goals[0] and max([np.linalg.norm(force) for force in atoms.get_forces()]):
+        next_goal = [goal for goal in goals if goal < next_goal][-1]
+        if world.rank == 0: update_db(db_dir, dict(id=db_id, atoms=atoms.copy(), relaxed=True, vibration=False, vib_en=False))
 
 
 def main(db_id: int, db_dir: str, fmax: float = 0.3):
@@ -43,19 +51,39 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3):
     dft_calc_dict = pickle.loads(dft_calc_pickle)
 
     if isinstance(fmax, float) or isinstance(fmax, int): fmax = [fmax]
-    for i, fm in enumerate(fmax):
-        if initial_fmax is not None and initial_fmax < fm and initial_fmax != 0: continue
-        parprint(f'Starting {i+1} opt calculations with fmax={fm}')
-        dft_calc_dict['txt'] = f'{functional_folder}/opt_id{db_id}_{structure_str}_{adsorbate_str}_{fm}fm.txt'
-        if dftd4_bool: calc = SumCalculator([DFTD4(method=functional), GPAW(**dft_calc_dict)])
-        else: calc = GPAW(**pickle.loads(dft_calc_pickle))
-        atoms.set_calculator(calc)
-        barrier()
+    fmax = sorted(fmax)
+
+    if len(fmax) > 1:
+        global next_goal
+        goals = [goal for goal in fmax if goal < initial_fmax]
+        next_goal = fmax[-1]
+    else: goals = fmax
+
+    # define optimizer
+    dyn = GPMin(atoms, trajectory=None)
+    if len(fmax) > 1: dyn.attach(optimiser_observer,
+                                 atoms=atoms,
+                                 db_dir=db_dir,
+                                 db_id=db_id,
+                                 goals=goals)
+    barrier()
+    # run relaxation to a maximum force of 0.03 eV / Angstroms
+    dyn.run(fmax=goals[0])
+    if world.rank == 0: update_db(db_dir, dict(id=db_id, atoms=atoms, relaxed=True, vibration=False, vib_en=False))
+
+#    for i, fm in enumerate(fmax):
+#        if initial_fmax is not None and initial_fmax < fm and initial_fmax != 0: continue
+#        parprint(f'Starting {i+1} opt calculations with fmax={fm}')
+#        dft_calc_dict['txt'] = f'{functional_folder}/opt_id{db_id}_{structure_str}_{adsorbate_str}_{fm}fm.txt'
+#        if dftd4_bool: calc = SumCalculator([DFTD4(method=functional), GPAW(**dft_calc_dict)])
+#        else: calc = GPAW(**pickle.loads(dft_calc_pickle))
+#        atoms.set_calculator(calc)
+#        barrier()
         # define optimizer
-        dyn = GPMin(atoms, trajectory=None)
+#        dyn = GPMin(atoms, trajectory=None)
         # run relaxation to a maximum force of 0.03 eV / Angstroms
-        dyn.run(fmax=fm)
-        if world.rank == 0: update_db(db_dir, dict(id=db_id, atoms=atoms, relaxed=True, vibration=False, vib_en=False))
+#        dyn.run(fmax=fm)
+#        if world.rank == 0: update_db(db_dir, dict(id=db_id, atoms=atoms, relaxed=True, vibration=False, vib_en=False))
 
 
 if __name__ == '__main__':
