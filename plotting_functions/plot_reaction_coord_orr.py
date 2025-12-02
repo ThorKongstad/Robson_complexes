@@ -19,7 +19,7 @@ import plotly.express as px
 def plot(): pass
 
 
-def main(db_dir: list[str|pathlib.Path]):
+def main(db_dir: list[str|pathlib.Path], verbose: bool):
     pd_catalysts = build_pd(db_dir)
 
     unique_catalysts = {struc for _, row in pd_catalysts.iterrows() if not pd.isna((struc := row.get('structure_str')))}
@@ -67,7 +67,9 @@ def main(db_dir: list[str|pathlib.Path]):
                         legend=cat,
                         legendgroup=cat,
                     ))
-                except: continue
+                except: 
+                    if verbose:
+                        traceback.print_exc()
 
     fig.update_layout(
         title_text=f'ORR',
@@ -81,6 +83,7 @@ def main(db_dir: list[str|pathlib.Path]):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('db_dir', type=pathlib.Path, nargs='+')
+    parser.add_argument('-v', '--verbose', action='store_true')
     args = parser.parse_args()
     
-    main(args.db_dir)
+    main(args.db_dir, args.verbose)
