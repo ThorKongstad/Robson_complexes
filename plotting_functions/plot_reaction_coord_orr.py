@@ -19,7 +19,7 @@ import plotly.express as px
 def plot(): pass
 
 
-def main(db_dir: list[str|pathlib.Path], verbose: bool):
+def main(db_dir: Sequence[str | pathlib.Path], verbose: bool, save_key: Optional[str] = None):
     pd_catalysts = build_pd(db_dir)
 
     unique_catalysts = {struc for _, row in pd_catalysts.iterrows() if not pd.isna((struc := row.get('structure_str')))}
@@ -91,13 +91,14 @@ def main(db_dir: list[str|pathlib.Path], verbose: bool):
     )
     
     folder_exist('plots')
-    fig.write_html(f'plots/plot_reaction_coord_orr.html', auto_open=False)
+    fig.write_html(f'plots/plot_reaction_coord_orr_{save_key}.html', auto_open=False)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('db_dir', type=pathlib.Path, nargs='+')
     parser.add_argument('-v', '--verbose', action='store_true')
+    parser.add_argument('-s', '--save_key', type=str, default=None)
     args = parser.parse_args()
     
-    main(args.db_dir, args.verbose)
+    main(args.db_dir, args.verbose, args.save_key)
