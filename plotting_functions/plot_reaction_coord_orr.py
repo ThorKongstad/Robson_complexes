@@ -69,7 +69,7 @@ def main(db_dir: list[str|pathlib.Path], verbose: bool):
                     ))
                 except: 
                     if verbose:
-                        traceback.print_exc()
+                        print(traceback.print_exc())
 
     fig.update_layout(
         title_text=f'ORR',
