@@ -29,7 +29,7 @@ def optimiser_observer(atoms: Atoms, db_dir: str, db_id: int, goals: list[float]
         if world.rank == 0: update_db(db_dir, dict(id=db_id, atoms=atoms.copy(), relaxed=True, vibration=False, vib_en=False))
 
 
-def main(db_id: int, db_dir: str, fmax: float = 0.3):
+def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False):
 
     # read from  database
     if not os.path.basename(db_dir) in os.listdir(db_path if len(db_path := os.path.dirname(db_dir))>0 else '.'): raise FileNotFoundError("Can't find database")
@@ -61,7 +61,7 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3):
     if len(fmax) > 1:
         global next_goal
         if initial_fmax:
-            goals = [goal for goal in fmax if goal < initial_fmax]
+            goals = [goal for goal in fmax if goal < initial_fmax and not restart]
         else: goals = fmax
         next_goal = fmax[-1]
     else: goals = fmax
@@ -100,6 +100,7 @@ if __name__ == '__main__':
     parser.add_argument('data_base_id',type=int)
     parser.add_argument('database', help='directory to the database.')
     parser.add_argument('--fmax', '-fm', default=0.3, type=float, nargs='+', help='state the fmax to use and if multiple runs the optimisation sequentially for each maximum force.')
+    parser.add_argument('--restart', '-R')
     args = parser.parse_args()
 
-    main(args.data_base_id, args.database, fmax=args.fmax)
+    main(args.data_base_id, args.database, fmax=args.fmax, restart=args.restart)
