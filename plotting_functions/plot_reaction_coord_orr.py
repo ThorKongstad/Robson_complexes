@@ -43,7 +43,7 @@ def main(db_dir: list[str|pathlib.Path], verbose: bool):
     U = 1.23
 
     fig = go.Figure()
-    for xc in unique_charges:
+    for xc in unique_functionals:
         for cat in unique_catalysts:
             for charge in unique_charges:
                 try:
