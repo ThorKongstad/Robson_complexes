@@ -20,7 +20,7 @@ def plot(): pass
 
 
 def main(db_dir):
-    pd_catalysts = build_pd_catalysts(db_dir)
+    pd_catalysts = build_pd(db_dir)
 
     unique_catalysts = {struc for _, row in pd_adsorbate_dat.iterrows() if not pd.isna((struc := row.get('structure_str')))}
     unique_charges = {charg for _, row in pd_adsorbate_dat.iterrows() if not pd.isna((charg := row.get('charge')))}
