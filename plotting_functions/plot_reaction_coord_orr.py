@@ -77,7 +77,7 @@ def main(db_dir: Sequence[str | pathlib.Path], verbose: bool, save_key: Optional
                         mode='lines',
                         name=f'{xc}-{cat}-charge:{charge}',
                         x=('O2', '*OOH', '*O', '*OH', '*'),
-                        y=(4.92-4*U, state_2-state_1-3*U, state_3-state_1-2*U, state_4-state_1-U, 0),
+                        y=(4.92-4*U, state_2-state_1+4.92-3*U, state_3-state_1+4.92-2*U, state_4-state_1+4.92-U, 0),
                         legendgrouptitle_text=cat,
                         legendgroup=cat,
                     ))
