@@ -23,7 +23,7 @@ def main(db_dir: list[str|pathlib.Path], verbose: bool):
     pd_catalysts = build_pd(db_dir)
 
     unique_catalysts = {struc for _, row in pd_catalysts.iterrows() if not pd.isna((struc := row.get('structure_str')))}
-    unique_charges = {charg for _, row in pd_catalysts.iterrows() if not pd.isna((charg := row.get('charge')))}
+    unique_charges = {charg for _, row in pd_catalysts.iterrows() if not pd.isna((charg := row.get('gpaw_charge')))}
     unique_functionals = {xc for _, row in pd_catalysts.iterrows() if not pd.isna((xc := row.get('xc')))}
 
     # Small molecule energies
@@ -47,10 +47,10 @@ def main(db_dir: list[str|pathlib.Path], verbose: bool):
         for cat in unique_catalysts:
             for charge in unique_charges:
                 try:
-                    dft_E_None = pd_catalysts.query('structure_str == @xc and charge == @charge and xc == @xc and energy.notna() and adsorbate_str == "None"').get('energy').iloc[0]
-                    dft_E_O = pd_catalysts.query('structure_str == @xc and charge == @charge and xc == @xc and energy.notna() and adsorbate_str == "O"').get('energy').iloc[0]
-                    dft_E_OH = pd_catalysts.query('structure_str == @xc and charge == @charge and xc == @xc and energy.notna() and adsorbate_str == "OH"').get('energy').iloc[0]
-                    dft_E_OOH = pd_catalysts.query('structure_str == @xc and charge == @charge and xc == @xc and energy.notna() and adsorbate_str == "OOH"').get('energy').iloc[0]
+                    dft_E_None = pd_catalysts.query('structure_str == @xc and gpaw_charge == @charge and xc == @xc and energy.notna() and adsorbate_str == "None"').get('energy').iloc[0]
+                    dft_E_O = pd_catalysts.query('structure_str == @xc and gpaw_charge == @charge and xc == @xc and energy.notna() and adsorbate_str == "O"').get('energy').iloc[0]
+                    dft_E_OH = pd_catalysts.query('structure_str == @xc and gpaw_charge == @charge and xc == @xc and energy.notna() and adsorbate_str == "OH"').get('energy').iloc[0]
+                    dft_E_OOH = pd_catalysts.query('structure_str == @xc and gpaw_charge == @charge and xc == @xc and energy.notna() and adsorbate_str == "OOH"').get('energy').iloc[0]
 
                     state_1 = dft_E_None + G_o2 + 4*G_h2/2
                     state_2 = dft_E_OOH + 3*G_h2/2 - 0.3
