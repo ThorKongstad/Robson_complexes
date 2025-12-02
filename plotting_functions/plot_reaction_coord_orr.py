@@ -22,9 +22,9 @@ def plot(): pass
 def main(db_dir: list[str|pathlib.Path]):
     pd_catalysts = build_pd(db_dir)
 
-    unique_catalysts = {struc for _, row in pd_adsorbate_dat.iterrows() if not pd.isna((struc := row.get('structure_str')))}
-    unique_charges = {charg for _, row in pd_adsorbate_dat.iterrows() if not pd.isna((charg := row.get('charge')))}
-    unique_functionals = {xc for _, row in pd_adsorbate_dat.iterrows() if not pd.isna((xc := row.get('xc')))}
+    unique_catalysts = {struc for _, row in pd_catalysts.iterrows() if not pd.isna((struc := row.get('structure_str')))}
+    unique_charges = {charg for _, row in pd_catalysts.iterrows() if not pd.isna((charg := row.get('charge')))}
+    unique_functionals = {xc for _, row in pd_catalysts.iterrows() if not pd.isna((xc := row.get('xc')))}
 
     # Small molecule energies
     E_h2o = -13.926613
