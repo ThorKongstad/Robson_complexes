@@ -100,7 +100,7 @@ if __name__ == '__main__':
     parser.add_argument('data_base_id',type=int)
     parser.add_argument('database', help='directory to the database.')
     parser.add_argument('--fmax', '-fm', default=0.3, type=float, nargs='+', help='state the fmax to use and if multiple runs the optimisation sequentially for each maximum force.')
-    parser.add_argument('--restart', '-R')
+    parser.add_argument('--restart', '-R', action='store_true', default=False)
     args = parser.parse_args()
 
     main(args.data_base_id, args.database, fmax=args.fmax, restart=args.restart)
