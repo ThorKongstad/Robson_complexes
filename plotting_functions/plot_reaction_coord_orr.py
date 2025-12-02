@@ -40,6 +40,15 @@ def main(db_dir: list[str|pathlib.Path], verbose: bool):
 
     G_o2 = 2 * (2.46 + G_h2o - G_h2)
 
+    base_ts = 0
+    base_ZPE = 0
+    base_ooh_ts = 0.00
+    base_ooh_ZPE = 0.39
+    base_oh_ts = 0.00
+    base_oh_ZPE = 0.30
+    base_o_ts = 0.00
+    base_o_ZPE = 0.07
+
     U = 1.23
 
     fig = go.Figure()
@@ -52,12 +61,17 @@ def main(db_dir: list[str|pathlib.Path], verbose: bool):
                     dft_E_OH = pd_catalysts.query('structure_str == @cat and gpaw_charge == @charge and xc == @xc and energy.notna() and adsorbate_str == "OH"').get('energy').iloc[0]
                     dft_E_OOH = pd_catalysts.query('structure_str == @cat and gpaw_charge == @charge and xc == @xc and energy.notna() and adsorbate_str == "OOH"').get('energy').iloc[0]
 
-                    state_1 = dft_E_None + G_o2 + 4*G_h2/2
-                    state_2 = dft_E_OOH + 3*G_h2/2 - 0.3
-                    state_3 = dft_E_O + 2*G_h2/2 + G_h2o
-                    state_3_alt = dft_E_O + 2*G_h2/2
-                    state_4 = dft_E_OH + G_h2/2 + G_h2o - 0.3
-                    state_5 = dft_E_None + 2*G_h2o
+                    G_None = dft_E_None + base_ts + base_ZPE
+                    G_O = dft_E_O + base_o_ts + base_o_ZPE
+                    G_OH = dft_E_OH + base_oh_ts + base_oh_ZPE
+                    G_OOH = dft_E_OOH + base_ooh_ts + base_ooh_ZPE
+
+                    state_1 = G_None + G_o2 + 4*G_h2/2
+                    state_2 = G_OOH + 3*G_h2/2 - 0.3
+                    state_3 = G_O + 2*G_h2/2 + G_h2o
+                    state_3_alt = G_O + 2*G_h2/2
+                    state_4 = G_OH + G_h2/2 + G_h2o - 0.3
+                    state_5 = G_None + 2*G_h2o
 
                     fig.add_trace(go.Scatter(
                         mode='lines',
