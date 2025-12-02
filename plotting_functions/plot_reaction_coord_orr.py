@@ -6,7 +6,7 @@ from typing import Sequence, Optional
 import traceback
 from re import match
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
+sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent))
 from Robson_complexes import sanitize, folder_exist, build_pd
 #from scripts_for_adsorbate_database.adsorbate_correlation_plot import Functional
 
