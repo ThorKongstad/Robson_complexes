@@ -75,7 +75,7 @@ def main(db_dir: list[str|pathlib.Path]):
     )
     
     folder_exist('plots')
-    fig.write_html(f'plots/plot_reaction_coord_orr.pdf', auto_open=False)
+    fig.write_html(f'plots/plot_reaction_coord_orr.html', auto_open=False)
 
 
 if __name__ == '__main__':
