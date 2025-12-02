@@ -19,7 +19,7 @@ import plotly.express as px
 def plot(): pass
 
 
-def main(db_dir):
+def main(db_dir: list[str|pathlib.Path]):
     pd_catalysts = build_pd(db_dir)
 
     unique_catalysts = {struc for _, row in pd_adsorbate_dat.iterrows() if not pd.isna((struc := row.get('structure_str')))}
@@ -80,7 +80,7 @@ def main(db_dir):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('db_dir', type=pathlib.Path)
+    parser.add_argument('db_dir', type=pathlib.Path, nargs='+')
     args = parser.parse_args()
     
     main(args.db_dir)
