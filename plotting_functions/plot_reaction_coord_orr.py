@@ -16,9 +16,6 @@ import plotly.graph_objects as go
 import plotly.express as px
 
 
-def plot(): pass
-
-
 def main(db_dir: Sequence[str | pathlib.Path], verbose: bool, save_key: Optional[str] = None):
     pd_catalysts = build_pd(db_dir)
 
@@ -108,7 +105,7 @@ def main(db_dir: Sequence[str | pathlib.Path], verbose: bool, save_key: Optional
     sliders = [dict(
         active=10,
         currentvalue={"prefix": "U[eV]= "},
-        pad={'t', 50},
+        pad={'t': 50},
         steps=steps,
     )]
 
