@@ -74,7 +74,7 @@ def main(db_dir: Sequence[str | pathlib.Path], verbose: bool, save_key: Optional
 
                         fig.add_trace(go.Scatter(
                             mode='lines',
-                            name=f'{xc}-{cat}-charge:{charge}',
+                            name=f'{xc}-{cat}-charge:{charge}-U:{U}',
                             x=('O2', '*OOH', '*O', '*OH', '*'),
                             y=(4.92-4*U, state_2-state_1+4.92-3*U, state_3-state_1+4.92-2*U, state_4-state_1+4.92-U, 0),
                             legendgrouptitle_text=cat,
@@ -93,13 +93,12 @@ def main(db_dir: Sequence[str | pathlib.Path], verbose: bool, save_key: Optional
     )
 
     steps = []
-    for i in range(len(fig.data)):
+    for i in np.arange(0, 5, step_size):
         step = dict(
             method='update',
-            args=[{'visible': [False] * len(fig.data)},
-                  {'title': f'ORR; U = {i * step_size}'}],
+            args=[{'visible', [True if match(f'-U:{i}', trace.name) else False for trace in fig.data]},
+                  {'title': f'ORR; U = {i}'}],
         )
-        step['args'][0]['visible'][1] = True
         steps.append(step)
 
     sliders = [dict(
