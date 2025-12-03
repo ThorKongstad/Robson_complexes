@@ -92,7 +92,7 @@ def main(db_dir: Sequence[str | pathlib.Path], verbose: bool, save_key: Optional
 
     fig.update_layout(
         title_text=f'ORR',
-        yaxis_title='free energy at U=1.23[eV]',
+        yaxis_title='free energy',
     )
 
     steps = []
@@ -107,7 +107,7 @@ def main(db_dir: Sequence[str | pathlib.Path], verbose: bool, save_key: Optional
 
     sliders = [dict(
         active=10,
-        currentvalue={"prefix": "U[/eV]= "},
+        currentvalue={"prefix": "U[eV]= "},
         pad={'t', 50},
         steps=steps,
     )]
