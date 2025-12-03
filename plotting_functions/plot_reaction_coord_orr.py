@@ -96,7 +96,7 @@ def main(db_dir: Sequence[str | pathlib.Path], verbose: bool, save_key: Optional
     for i in np.arange(0, 5, step_size):
         step = dict(
             method='update',
-            args=[{'visible', [True if match(f'-U:{i}', trace.name) else False for trace in fig.data]},
+            args=[{'visible': [True if match(f'-U:{i}', trace.name) else False for trace in fig.data]},
                   {'title': f'ORR; U = {i}'}],
         )
         steps.append(step)
