@@ -102,7 +102,7 @@ def main(db_dir: Sequence[str | pathlib.Path], verbose: bool, save_key: Optional
             args=[{'visible': [False] * len(fig.data)},
                   {'title': f'ORR; U = {i * step_size}'}],
         )
-        steps['args'][0]['visible'][1] = True
+        step['args'][0]['visible'][1] = True
         steps.append(step)
 
     sliders = [dict(
