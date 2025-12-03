@@ -50,46 +50,70 @@ def main(db_dir: Sequence[str | pathlib.Path], verbose: bool, save_key: Optional
     base_o_ZPE = 0.07
 
     U = 1.23
+    step_size = 0.1
 
     fig = go.Figure()
-    for xc in unique_functionals:
-        for cat in unique_catalysts:
-            for charge in unique_charges:
-                try:
-                    dft_E_None = pd_catalysts.query('structure_str == @cat and gpaw_charge == @charge and xc == @xc and energy.notna() and adsorbate_str == "None"').get('energy').iloc[0]
-                    dft_E_O = pd_catalysts.query('structure_str == @cat and gpaw_charge == @charge and xc == @xc and energy.notna() and adsorbate_str == "O"').get('energy').iloc[0]
-                    dft_E_OH = pd_catalysts.query('structure_str == @cat and gpaw_charge == @charge and xc == @xc and energy.notna() and adsorbate_str == "OH"').get('energy').iloc[0]
-                    dft_E_OOH = pd_catalysts.query('structure_str == @cat and gpaw_charge == @charge and xc == @xc and energy.notna() and adsorbate_str == "OOH"').get('energy').iloc[0]
+    for U in np.arange(0, 5, step_size):
+        for xc in unique_functionals:
+            for cat in unique_catalysts:
+                for charge in unique_charges:
+                    try:
+                        dft_E_None = pd_catalysts.query('structure_str == @cat and gpaw_charge == @charge and xc == @xc and energy.notna() and adsorbate_str == "None"').get('energy').iloc[0]
+                        dft_E_O = pd_catalysts.query('structure_str == @cat and gpaw_charge == @charge and xc == @xc and energy.notna() and adsorbate_str == "O"').get('energy').iloc[0]
+                        dft_E_OH = pd_catalysts.query('structure_str == @cat and gpaw_charge == @charge and xc == @xc and energy.notna() and adsorbate_str == "OH"').get('energy').iloc[0]
+                        dft_E_OOH = pd_catalysts.query('structure_str == @cat and gpaw_charge == @charge and xc == @xc and energy.notna() and adsorbate_str == "OOH"').get('energy').iloc[0]
 
-                    G_None = dft_E_None + base_ts + base_ZPE
-                    G_O = dft_E_O + base_o_ts + base_o_ZPE
-                    G_OH = dft_E_OH + base_oh_ts + base_oh_ZPE
-                    G_OOH = dft_E_OOH + base_ooh_ts + base_ooh_ZPE
+                        G_None = dft_E_None + base_ts + base_ZPE
+                        G_O = dft_E_O + base_o_ts + base_o_ZPE
+                        G_OH = dft_E_OH + base_oh_ts + base_oh_ZPE
+                        G_OOH = dft_E_OOH + base_ooh_ts + base_ooh_ZPE
 
-                    state_1 = G_None + G_o2 + 4*G_h2/2
-                    state_2 = G_OOH + 3*G_h2/2 - 0.3
-                    state_3 = G_O + 2*G_h2/2 + G_h2o
-                    state_3_alt = G_O + 2*G_h2/2
-                    state_4 = G_OH + G_h2/2 + G_h2o - 0.3
-                    state_5 = G_None + 2*G_h2o
+                        state_1 = G_None + G_o2 + 4*G_h2/2
+                        state_2 = G_OOH + 3*G_h2/2 - 0.3
+                        state_3 = G_O + 2*G_h2/2 + G_h2o
+                        state_3_alt = G_O + 2*G_h2/2
+                        state_4 = G_OH + G_h2/2 + G_h2o - 0.3
+                        state_5 = G_None + 2*G_h2o
 
-                    fig.add_trace(go.Scatter(
-                        mode='lines',
-                        name=f'{xc}-{cat}-charge:{charge}',
-                        x=('O2', '*OOH', '*O', '*OH', '*'),
-                        y=(4.92-4*U, state_2-state_1+4.92-3*U, state_3-state_1+4.92-2*U, state_4-state_1+4.92-U, 0),
-                        legendgrouptitle_text=cat,
-                        legendgroup=cat,
-                    ))
-                except: 
-                    if verbose:
-                        print(traceback.format_exc())
+                        fig.add_trace(go.Scatter(
+                            mode='lines',
+                            name=f'{xc}-{cat}-charge:{charge}',
+                            x=('O2', '*OOH', '*O', '*OH', '*'),
+                            y=(4.92-4*U, state_2-state_1+4.92-3*U, state_3-state_1+4.92-2*U, state_4-state_1+4.92-U, 0),
+                            legendgrouptitle_text=cat,
+                            legendgroup=cat,
+                            visible=False,
+                        ))
+                    except:
+                        if verbose:
+                            print(traceback.format_exc())
+
+    fig.data[123].visible = True
 
     fig.update_layout(
         title_text=f'ORR',
         yaxis_title='free energy at U=1.23[eV]',
     )
-    
+
+    steps = []
+    for i in range(len(fig.data)):
+        step = dict(
+            method='update',
+            args=[{'visible': [False] * len(fig.data)},
+                  {'title': f'ORR; U = {i * step_size}'}],
+        )
+        steps['args'][0]['visible'][1] = True
+        steps.append(step)
+
+    sliders = [dict(
+        active=10,
+        currentvalue={"prefix": "U[/eV]= "},
+        pad={'t', 50},
+        steps=steps,
+    )]
+
+    fig.update_layout(sliders=sliders)
+
     folder_exist('plots')
     fig.write_html(f'plots/plot_reaction_coord_orr_{save_key}.html', auto_open=False)
 
