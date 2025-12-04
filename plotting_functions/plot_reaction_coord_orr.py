@@ -47,7 +47,7 @@ def main(db_dir: Sequence[str | pathlib.Path], verbose: bool, save_key: Optional
     base_o_ZPE = 0.07
 
     U = 1.23
-    step_size = 0.1
+    step_size = 0.01
 
     fig = go.Figure()
     for U in np.arange(0, 5, step_size):
@@ -91,7 +91,7 @@ def main(db_dir: Sequence[str | pathlib.Path], verbose: bool, save_key: Optional
     )
 
     for trace in fig.data:
-        if search('-U:1\.23', trace.name): trace.visible = True
+        if search(r'-U:1\.23', trace.name): trace.visible = True
 
     steps = []
     for i in np.arange(0, 5, step_size):
