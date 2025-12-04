@@ -85,8 +85,6 @@ def main(db_dir: Sequence[str | pathlib.Path], verbose: bool, save_key: Optional
                         if verbose:
                             print(traceback.format_exc())
 
-    fig.data[123].visible = True
-
     fig.update_layout(
         title_text=f'ORR',
         yaxis_title='free energy',
@@ -97,7 +95,7 @@ def main(db_dir: Sequence[str | pathlib.Path], verbose: bool, save_key: Optional
         step = dict(
             method='update',
             args=[{'visible': [True if match(f'-U:{i}', trace.name) else False for trace in fig.data]},
-                  {'title': f'ORR; U = {i}'}],
+                  {'title_text': f'ORR; U = {i}'}],
         )
         steps.append(step)
 
