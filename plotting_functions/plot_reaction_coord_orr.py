@@ -74,7 +74,7 @@ def main(db_dir: Sequence[str | pathlib.Path], verbose: bool, save_key: Optional
 
                         fig.add_trace(go.Scatter(
                             mode='lines',
-                            name=f'{xc}-{cat}-charge:{charge}-U:{U:.3f}',
+                            name=f'{xc}-{cat}-charge:{charge}-U:{U:.2f}',
                             x=('O2', '*OOH', '*O', '*OH', '*'),
                             y=(4.92-4*U, state_2-state_1+4.92-3*U, state_3-state_1+4.92-2*U, state_4-state_1+4.92-U, 0),
                             legendgrouptitle_text=cat,
@@ -97,7 +97,7 @@ def main(db_dir: Sequence[str | pathlib.Path], verbose: bool, save_key: Optional
     for i in np.arange(0, 5, step_size):
         step = dict(
             method='update',
-            args=[{'visible': [True if search(f'-U:{i:.3f}', trace.name) else False for trace in fig.data]},
+            args=[{'visible': [True if search(f'-U:{i:.2f}', trace.name) else False for trace in fig.data]},
                   {'title_text': f'ORR; U = {i}'}],
         )
         steps.append(step)
