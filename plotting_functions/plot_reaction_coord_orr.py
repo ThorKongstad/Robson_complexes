@@ -4,7 +4,7 @@ import sys
 import pathlib
 from typing import Sequence, Optional
 import traceback
-from re import match
+from re import match, search
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent))
 from Robson_complexes import sanitize, folder_exist, build_pd
@@ -74,7 +74,7 @@ def main(db_dir: Sequence[str | pathlib.Path], verbose: bool, save_key: Optional
 
                         fig.add_trace(go.Scatter(
                             mode='lines',
-                            name=f'{xc}-{cat}-charge:{charge}-U:{U}',
+                            name=f'{xc}-{cat}-charge:{charge}-U:{U:.3f}',
                             x=('O2', '*OOH', '*O', '*OH', '*'),
                             y=(4.92-4*U, state_2-state_1+4.92-3*U, state_3-state_1+4.92-2*U, state_4-state_1+4.92-U, 0),
                             legendgrouptitle_text=cat,
@@ -90,11 +90,14 @@ def main(db_dir: Sequence[str | pathlib.Path], verbose: bool, save_key: Optional
         yaxis_title='free energy',
     )
 
+    for trace in fig.data:
+        if search('-U:1\.23', trace.name): trace.visible = True
+
     steps = []
     for i in np.arange(0, 5, step_size):
         step = dict(
             method='update',
-            args=[{'visible': [True if match(f'-U:{i}', trace.name) else False for trace in fig.data]},
+            args=[{'visible': [True if search(f'-U:{i:.3f}', trace.name) else False for trace in fig.data]},
                   {'title_text': f'ORR; U = {i}'}],
         )
         steps.append(step)
