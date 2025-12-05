@@ -17,7 +17,7 @@ def main(traj_structure: str, structure_str: str, functional_str: str,  db_dir: 
     atoms: Atoms = read(traj_structure)
 
     if reset_spin:
-        initial_magnetic_moments = [4.0 * (-1 if i % 2 else 1) if a.symbol in ['Co', 'Fe'] else 0.0 for i, a in enumerate(atoms)]
+        initial_magnetic_moments = [(3 if a.symbol == 'Co' else 4) * (-1 if i % 2 else 1) if a.symbol in ['Co', 'Fe'] else 0.0 for i, a in enumerate(atoms)]
         atoms.set_initial_magnetic_moments(initial_magnetic_moments)
 
 #    if charge != 0:
