@@ -44,6 +44,8 @@ def main(db_id: int, db_dir: str):
 
     dft_calc_dict = pickle.loads(dft_calc_pickle)
 
+    dft_calc_dict.update({'symmetry': 'off'})
+
     file_name = f'vib_id{db_id}_{structure_str}_{adsorbate_str}'
     dft_calc_dict['txt'] = f'{functional_folder}/{file_name}.txt'
     if dftd4_bool: calc = SumCalculator([DFTD4(method=functional), GPAW(**dft_calc_dict)])
