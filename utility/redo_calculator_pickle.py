@@ -1,6 +1,7 @@
 import argparse
 import sys
 import os
+import pathlib
 from typing import Optional
 
 from ase.io import read
