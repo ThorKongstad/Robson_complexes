@@ -1,7 +1,6 @@
 import argparse
-#sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
-#from scripts_for_adsorbate_database import sanitize, folder_exist
-
+import sys
+import os
 from typing import Optional
 
 from ase.io import read
@@ -66,4 +65,4 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    main(args.data_base_id, args.database)
+    main(args.data_base_id, args.database, spinpol=args.spinpol, hubberd_U=args.hubberd_U)
