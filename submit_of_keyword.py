@@ -37,7 +37,7 @@ def main(key: str, python_scribt: str, selection_filter: Optional[str] = None, d
 
     for row in row_iter:
         if local: call(['python', python_scribt, str(row.get("id")), '-db', db_dir])
-        else: call([slurm, python_scribt, str(row.get("id")), '-db', db_dir])
+        else: call(['bash', slurm, python_scribt, str(row.get("id")), '-db', db_dir])
 
 
 if __name__ == '__main__':
