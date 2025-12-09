@@ -12,7 +12,7 @@ import pickle
 from gpaw import FermiDirac, PoissonSolver, Mixer, MixerFull
 from gpaw.utilities import h2gpts
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
+sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent))
 from Robson_complexes import sanitize, folder_exist, update_db
 
 
