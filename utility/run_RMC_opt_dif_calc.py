@@ -8,8 +8,6 @@ import sys
 import pathlib
 import pickle
 
-from sympy.physics.units import charge
-
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
 from Robson_complexes import sanitize, folder_exist, update_db
 
