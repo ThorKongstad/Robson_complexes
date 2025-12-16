@@ -117,9 +117,9 @@ if __name__ == '__main__':
     parser.add_argument('database', help='directory to the database.')
     parser.add_argument('--fmax', '-fm', default=0.3, type=float, nargs='+', help='state the fmax to use and if multiple runs the optimisation sequentially for each maximum force.')
     parser.add_argument('--restart', '-R', action='store_true', default=False)
-    parser.add_argument('--beta', '-b', default=0.05)
+    parser.add_argument('--beta', '-b', default=0.05, type=float)
     parser.add_argument('--maxold','-mo', default=5, type=int)
-    parser.add_argument('--weight', '-w', default=50, type=int)
+    parser.add_argument('--weight', '-w', default=50, type=float)
     args = parser.parse_args()
 
     main(args.data_base_id, args.database, fmax=args.fmax, restart=args.restart, beta=args.beta, maxold=args.maxold, weight=args.weight)
