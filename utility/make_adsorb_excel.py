@@ -4,8 +4,6 @@ import pathlib
 from copy import copy
 import traceback
 
-from debugpy.common.timestamp import current
-
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent))
 from Robson_complexes import sanitize, folder_exist, build_pd
 
