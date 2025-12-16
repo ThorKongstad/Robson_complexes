@@ -70,7 +70,7 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False, beta
     )
 
     if dftd4_bool: calc = SumCalculator([DFTD4(method=functional), GPAW(**calc_par_dict)])
-    else: calc = GPAW(**pickle.loads(calc_par_dict))
+    else: calc = GPAW(**calc_par_dict)
     atoms.set_calculator(calc)
 
     if isinstance(fmax, float) or isinstance(fmax, int): fmax = [fmax]
