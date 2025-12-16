@@ -69,11 +69,10 @@ def main(db_directory: str, verbose: bool):
             unique_charges = {charg for _, row in pd_data.query('structure_str == @struc').iterrows() if not pd.isna((charg := row.get('gpaw_charge')))}
             sheet.cell(row=current_line, column=1).value = struc
             for charge in unique_charges:
-                unique_adsorbates = {struc for _, row in pd_data.query('structure_str == @struc and gpaw_charge == @charge').iterrows() if not pd.isna((struc := row.get('adsorbate_str'))) or struc != 'None'}
+                unique_adsorbates = {adsor for _, row in pd_data.query('structure_str == @struc and gpaw_charge == @charge').iterrows() if not pd.isna((adsor := row.get('adsorbate_str'))) or adsor != 'None'}
                 sheet.cell(row=current_line, column=2).value = charge
                 for j, adsorbate in enumerate(unique_adsorbates):
                     sheet.cell(row=current_line, column=3).value = adsorbate
-
                     match adsorbate:
                         case 'O':
                             try:
