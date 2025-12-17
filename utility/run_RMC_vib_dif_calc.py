@@ -33,7 +33,7 @@ def optimiser_observer(atoms: Atoms, db_dir: str, db_id: int, goals: list[float]
         if world.rank == 0: update_db(db_dir, dict(id=db_id, atoms=atoms.copy(), relaxed=True, vibration=False, vib_en=False))
 
 
-def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False, beta=0.05, maxold=5, weight=50):
+def main(db_id: int, db_dir: str, beta=0.05, maxold=5, weight=50):
 
     # read from  database
     if not os.path.basename(db_dir) in os.listdir(db_path if len(db_path := os.path.dirname(db_dir))>0 else '.'): raise FileNotFoundError("Can't find database")
@@ -111,11 +111,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('data_base_id',type=int)
     parser.add_argument('database', help='directory to the database.')
-    parser.add_argument('--fmax', '-fm', default=0.3, type=float, nargs='+', help='state the fmax to use and if multiple runs the optimisation sequentially for each maximum force.')
-    parser.add_argument('--restart', '-R', action='store_true', default=False)
     parser.add_argument('--beta', '-b', default=0.05, type=float)
     parser.add_argument('--maxold','-mo', default=5, type=int)
     parser.add_argument('--weight', '-w', default=50, type=float)
     args = parser.parse_args()
 
-    main(args.data_base_id, args.database, fmax=args.fmax, restart=args.restart, beta=args.beta, maxold=args.maxold, weight=args.weight)
+    main(args.data_base_id, args.database, beta=args.beta, maxold=args.maxold, weight=args.weight)
