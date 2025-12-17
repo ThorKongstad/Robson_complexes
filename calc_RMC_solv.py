@@ -94,4 +94,4 @@ if __name__ == '__main__':
     parser.add_argument('database', help='directory to the database.')
     args = parser.parse_args()
 
-    main(args.data_base_id, args.database, fmax=args.fmax, restart=args.restart)
+    main(args.data_base_id, args.database)
