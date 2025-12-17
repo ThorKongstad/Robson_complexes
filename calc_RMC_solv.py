@@ -52,7 +52,7 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False):
         initial_fmax = row.get('fmax')
         gas_E = row.get('energy')
 
-    parprint(f'outstd of opt calculation for db entry {db_id} with structure: {structure_str}, adsorbate: {adsorbate_str} and functional: {functional}')
+    parprint(f'outstd of solvation calculation for db entry {db_id} with structure: {structure_str}, adsorbate: {adsorbate_str} and functional: {functional}')
 
     functional_folder = sanitize(functional) + ('_D4' if dftd4_bool else '')
     if world.rank == 0: folder_exist(functional_folder)
@@ -61,7 +61,7 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False):
 
     atomic_radii = {'H': 1.09, 'C': 1.77, 'N': 1.66, 'O': 1.50, 'Co': 2.4, 'Fe': 2.44}
 
-    dft_calc_dict['txt'] = f'{functional_folder}/opt_id{db_id}_{structure_str}_{adsorbate_str}.txt'
+    dft_calc_dict['txt'] = f'{functional_folder}/solv_id{db_id}_{structure_str}_{adsorbate_str}.txt'
     if dftd4_bool: calc = SumCalculator([DFTD4(method=functional), SolvationGPAW(
             cavity=EffectivePotentialCavity(
             effective_potential=Power12Potential(atomic_radii, 0.18),
