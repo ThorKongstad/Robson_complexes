@@ -19,7 +19,6 @@ from ase import Atoms
 from ase.units import mol, kJ, kcal, Pascal, m
 from gpaw import GPAW, PW, Davidson
 from gpaw.utilities import h2gpts
-from dftd4.ase import DFTD4
 from gpaw.solvation import (
     SolvationGPAW,
     EffectivePotentialCavity,
@@ -49,8 +48,6 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False):
         adsorbate_str = row.get('adsorbate_str')
         dftd4_bool = row.get('dftd4')
         dft_calc_pickle = eval(row.data.get('dft_calc_pickle'))
-        initial_fmax = row.get('fmax')
-        gas_E = row.get('energy')
 
     parprint(f'outstd of solvation calculation for db entry {db_id} with structure: {structure_str}, adsorbate: {adsorbate_str} and functional: {functional}')
 
@@ -59,26 +56,24 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False):
 
     dft_calc_dict = pickle.loads(dft_calc_pickle)
 
+    dft_calc_dict['txt'] = f'{functional_folder}/sp_id{db_id}_{structure_str}_{adsorbate_str}.txt'
+    calc = GPAW(*dft_calc_dict)
+    atoms.set_calculator(calc)
+
+    gas_E = atoms.get_potential_energy()
+
     atomic_radii = {'H': 1.09, 'C': 1.77, 'N': 1.66, 'O': 1.50, 'Co': 2.4, 'Fe': 2.44}
 
     dft_calc_dict['txt'] = f'{functional_folder}/solv_id{db_id}_{structure_str}_{adsorbate_str}.txt'
-    if dftd4_bool: calc = SumCalculator([DFTD4(method=functional), SolvationGPAW(
-            cavity=EffectivePotentialCavity(
-            effective_potential=Power12Potential(atomic_radii, 0.18),
-            temperature=298.15,
-            surface_calculator=GradientSurface()),
-            dielectric=LinearDielectric(epsinf=78.36),
-            interactions=[SurfaceInteraction(surface_tension=18.4*1e-3*Pascal*m)],
-            **dft_calc_dict)])
-    else:
-        calc = SolvationGPAW(
-            cavity=EffectivePotentialCavity(
-            effective_potential=Power12Potential(atomic_radii, 0.18),
-            temperature=298.15,
-            surface_calculator=GradientSurface()),
-            dielectric=LinearDielectric(epsinf=78.36),
-            interactions=[SurfaceInteraction(surface_tension=18.4*1e-3*Pascal*m)],
-            **pickle.loads(dft_calc_pickle))
+
+    calc = SolvationGPAW(
+        cavity=EffectivePotentialCavity(
+        effective_potential=Power12Potential(atomic_radii, 0.18),
+        temperature=298.15,
+        surface_calculator=GradientSurface()),
+        dielectric=LinearDielectric(epsinf=78.36),
+        interactions=[SurfaceInteraction(surface_tension=18.4*1e-3*Pascal*m)],
+        **dft_calc_dict)
     atoms.set_calculator(calc)
 
     solvated_energy = atoms.get_potential_energy()
