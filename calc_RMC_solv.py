@@ -57,7 +57,7 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False):
     dft_calc_dict = pickle.loads(dft_calc_pickle)
 
     dft_calc_dict['txt'] = f'{functional_folder}/sp_id{db_id}_{structure_str}_{adsorbate_str}.txt'
-    calc = GPAW(*dft_calc_dict)
+    calc = GPAW(**dft_calc_dict)
     atoms.set_calculator(calc)
 
     gas_E = atoms.get_potential_energy()
