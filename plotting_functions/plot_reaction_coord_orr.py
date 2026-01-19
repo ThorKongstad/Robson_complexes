@@ -16,6 +16,89 @@ import plotly.graph_objects as go
 import plotly.express as px
 
 
+def reaction_energy_traces(
+    state_energies: dict,
+    plateau_width: float = 0.6,
+    connector_dx: float = 0.25,
+    plateau_line_width: int = 4,
+    connector_line_width: int = 2,
+    trace_kwargs: dict = {},
+):
+    """
+    Create Plotly traces for a reaction energy diagram.
+
+    Parameters
+    ----------
+    state_energies : dict
+        Dictionary of {state_name: energy}. Order is preserved.
+    plateau_width : float
+        Horizontal width of each energy plateau.
+    connector_dx : float
+        Horizontal slant for connectors (non-vertical transitions).
+    plateau_line_width : int
+        Line width for plateaus.
+    connector_line_width : int
+        Line width for connectors.
+
+    Returns
+    -------
+    tuple
+        (plateau_trace, connector_trace)
+    """
+
+    states = list(state_energies.keys())
+    energies = list(state_energies.values())
+
+    # -----------------------------
+    # Plateaus
+    # -----------------------------
+    x_plateau, y_plateau = [], []
+
+    for i, energy in enumerate(energies):
+        left = i - plateau_width / 2
+        right = i + plateau_width / 2
+
+        x_plateau.extend([left, right, None])
+        y_plateau.extend([energy, energy, None])
+
+    state_kwargs = dict(line=dict(width=plateau_line_width),
+        hoverinfo="none",
+        name="States",) | trace_kwargs
+
+    plateau_trace = go.Scatter(
+        x=x_plateau,
+        y=y_plateau,
+        mode="lines",
+        **state_kwargs
+    )
+
+    # -----------------------------
+    # Connectors
+    # -----------------------------
+    x_conn, y_conn = [], []
+
+    for i in range(len(energies) - 1):
+        x_start = i + plateau_width / 2 + connector_dx / 2
+        x_end = (i + 1) - plateau_width / 2 - connector_dx / 2
+
+        x_conn.extend([x_start, x_end, None])
+        y_conn.extend([energies[i], energies[i + 1], None])
+
+    connector_kwargs = dict(line=dict(width=connector_line_width, color="grey"),
+        hoverinfo="none",
+        name="Transitions",
+        showlegend=False ) | trace_kwargs
+
+    connector_trace = go.Scatter(
+        x=x_conn,
+        y=y_conn,
+        mode="lines",
+        **connector_kwargs
+    )
+
+    return plateau_trace, connector_trace
+
+
 def main(db_dir: Sequence[str | pathlib.Path], verbose: bool, save_key: Optional[str] = None):
     pd_catalysts = build_pd(db_dir)
 
@@ -72,15 +155,28 @@ def main(db_dir: Sequence[str | pathlib.Path], verbose: bool, save_key: Optional
                         state_4 = G_OH + G_h2/2 + G_h2o - 0.3
                         state_5 = G_None + 2*G_h2o
 
-                        fig.add_trace(go.Scatter(
-                            mode='lines',
-                            name=f'{xc}-{cat}-charge:{charge}-U:{U:.2f}',
-                            x=('O2', '*OOH', '*O', '*OH', '*'),
-                            y=(4.92-4*U, state_2-state_1+4.92-3*U, state_3-state_1+4.92-2*U, state_4-state_1+4.92-U, 0),
-                            legendgrouptitle_text=cat,
-                            legendgroup=cat,
-                            visible=False,
-                        ))
+                        #fig.add_trace(go.Scatter(
+                        #    mode='lines',
+                        #    name=f'{xc}-{cat}-charge:{charge}-U:{U:.2f}',
+                        #    x=('O2', '*OOH', '*O', '*OH', '*'),
+                        #    y=(4.92-4*U, state_2-state_1+4.92-3*U, state_3-state_1+4.92-2*U, state_4-state_1+4.92-U, 0),
+                        #    legendgrouptitle_text=cat,
+                        #    legendgroup=cat,
+                        #    visible=False,
+                        #))
+
+                        states = {'O2':4.92-4*U, '*OOH':state_2-state_1+4.92-3*U, '*O':state_3-state_1+4.92-2*U, '*OH':state_4-state_1+4.92-U, '*':0}
+
+                        fig.add_traces(
+                            reaction_energy_traces(states,
+                                                   trace_kwargs=dict(name=f'{xc}-{cat}-charge:{charge}-U:{U:.2f}',
+                                                                     legendgrouptitle_text=cat,
+                                                                     legendgroup=cat,
+                                                                     visible=False,
+                                                                     )
+                                                   ),
+                        )
+
                     except:
                         if verbose:
                             print(traceback.format_exc())
@@ -88,6 +184,13 @@ def main(db_dir: Sequence[str | pathlib.Path], verbose: bool, save_key: Optional
     fig.update_layout(
         title_text=f'ORR',
         yaxis_title='free energy',
+    )
+
+    fig.update_xaxes(
+        tickmode="array",
+        tickvals=list(range(len(states))),
+        ticktext=list(states.keys()),
+        title="Reaction Coordinate"
     )
 
     for trace in fig.data:
@@ -99,6 +202,7 @@ def main(db_dir: Sequence[str | pathlib.Path], verbose: bool, save_key: Optional
             method='update',
             args=[{'visible': [True if search(f'-U:{i:.2f}', trace.name) else False for trace in fig.data]},
                   {'title_text': f'ORR; U = {i}'}],
+            label=f'{i:.2f}'
         )
         steps.append(step)
 
