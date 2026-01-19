@@ -23,6 +23,7 @@ from ase.thermochemistry import HarmonicThermo
 from gpaw import GPAW, PW, Davidson
 from gpaw import FermiDirac, PoissonSolver, Mixer, MixerFull
 from gpaw.utilities import h2gpts
+from gpaw.convergence_criteria import Density
 from dftd4.ase import DFTD4
 
 
@@ -33,7 +34,7 @@ def optimiser_observer(atoms: Atoms, db_dir: str, db_id: int, goals: list[float]
         if world.rank == 0: update_db(db_dir, dict(id=db_id, atoms=atoms.copy(), relaxed=True, vibration=False, vib_en=False))
 
 
-def main(db_id: int, db_dir: str, beta=0.05, maxold=5, weight=50, reset_spin: bool = False):
+def main(db_id: int, db_dir: str, beta=0.05, maxold=5, weight=50, reset_spin: bool = False, diff_convergence: bool = False) -> None:
 
     # read from  database
     if not os.path.basename(db_dir) in os.listdir(db_path if len(db_path := os.path.dirname(db_dir))>0 else '.'): raise FileNotFoundError("Can't find database")
@@ -63,6 +64,9 @@ def main(db_id: int, db_dir: str, beta=0.05, maxold=5, weight=50, reset_spin: bo
 
     file_name = f'vib_id{db_id}_{structure_str}_{adsorbate_str}_diff_calc'
 
+    if diff_convergence: convergence = {'convergence': {'density': Density(0.0005)}}
+    else: convergence = {}
+
     calc_par_dict = dict(
         xc=functional,
         basis='dzp',
@@ -74,7 +78,8 @@ def main(db_id: int, db_dir: str, beta=0.05, maxold=5, weight=50, reset_spin: bo
         charge=charge,
         txt=f'{functional_folder}/{file_name}.txt',
         symmetry='off',
-        **hubberd_U_dict
+        **hubberd_U_dict,
+        **convergence
     )
 
     if dftd4_bool: calc = SumCalculator([DFTD4(method=functional), GPAW(**calc_par_dict)])
@@ -119,6 +124,7 @@ if __name__ == '__main__':
     parser.add_argument('--maxold','-mo', default=5, type=int)
     parser.add_argument('--weight', '-w', default=50, type=float)
     parser.add_argument('--reset_spin', '-r', default=False, action='store_true')
+    parser.add_argument('--diff_con', '-dc', default=False, action='store_true')
     args = parser.parse_args()
 
-    main(args.data_base_id, args.database, beta=args.beta, maxold=args.maxold, weight=args.weight, reset_spin=args.reset_spin)
+    main(args.data_base_id, args.database, beta=args.beta, maxold=args.maxold, weight=args.weight, reset_spin=args.reset_spin, diff_convergence=args.diff_con)
