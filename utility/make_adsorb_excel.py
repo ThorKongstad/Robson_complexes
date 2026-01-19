@@ -59,6 +59,8 @@ def main(db_directory: str, verbose: bool):
     adsorbation_energy_sheet = excel_file.create_sheet('adsorption_E')
     adsorbation_free_sheet = excel_file.create_sheet('adsorption_G')
 
+    upper_border = Border(top=Side(border_style=BORDER_THIN, color='00000000'))
+
     for free_bool, sheet in zip((False, True), (adsorbation_energy_sheet, adsorbation_free_sheet)):
         sheet.cell(row=1, column=1).value = 'structure'
         sheet.cell(row=1, column=2).value = 'charge'
@@ -112,6 +114,7 @@ def main(db_directory: str, verbose: bool):
                         case _:
                             if verbose: print(f'Adsorbate: {adsorbate} didnt match any of the cases')
                     current_line += 1
+        for cell_nr in range(1,5): sheet.cell(row=current_line, column=cell_nr).border = upper_border
 
     excel_file.save('rmc_adsorp_dat.xlsx')
 
