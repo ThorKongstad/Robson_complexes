@@ -36,15 +36,15 @@ def main(key: str, python_scribt: str, selection_filter: Optional[str] = None, d
         row_iter = db_obj.select(selection=key, **selection_filter)
 
     for row in row_iter:
-        if local: call(['python', python_scribt, str(row.get("id")), '-db', db_dir])
-        else: call(['bash', slurm, python_scribt, str(row.get("id")), '-db', db_dir])
+        if local: call(['python', python_scribt, str(row.get("id")), db_dir])
+        else: call(['bash', slurm, python_scribt, str(row.get("id")), db_dir])
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('keyword', help='must match keywords used in db selection')
     parser.add_argument('python_script')
-    parser.add_argument('-db', '--database', help='directory to the database, if not stated will look for molreact.db in pwd.', default='molreact.db')
+    parser.add_argument('database', help='directory to the database.')
     parser.add_argument('--filter', '-f', help='current implemented filters are isgga, ismgga and collNotExist="COLLOM" t. a "," denotes an or and "&&" denotes an and')
     parser.add_argument('--local', '-local', action='store_true')
     parser.add_argument('-ss', '--submission_script', help='directory to the slurm submission script.', default='/groups/kemi/thorkong/katla_submission/submit_katla_GP236_static')
