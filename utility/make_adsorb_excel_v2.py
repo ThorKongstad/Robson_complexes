@@ -109,7 +109,10 @@ def main(db_directory: str, verbose: bool):
         working_sheet.cell(row=1, column=6).value = 'zpe'
         working_sheet.cell(row=1, column=7).value = 'entropy'
         working_sheet.cell(row=1, column=8).value = 'free_E'
-        for n in range(1,9): working_sheet.cell(row=1, column=n).border = upper_border
+
+        working_sheet.cell(row=1, column=10).value = 'solvation'
+        working_sheet.cell(row=1, column=11).value = 'total_free_E'
+        for n in range(1, 12): working_sheet.cell(row=1, column=n).border = upper_border
         current_line = 2
 
         for i, struc in enumerate(unique_catalysts):
@@ -120,10 +123,13 @@ def main(db_directory: str, verbose: bool):
                 working_sheet.cell(row=current_line, column=2).value = charge
                 for j, adsorbate in enumerate(unique_adsorbates):
                     working_sheet.cell(row=current_line, column=3).value = adsorbate
-                    for attri in ('Energy', 'zpe', 'entropy', 'free_E'):
-                        working_sheet.cell(row=current_line, column=4).value = match_adsorbate(adsorbate, pd_data, struc, charge, attri, xc=sheet_name, verbose=verbose)
-                        current_line += 1
-            for cell_nr in range(1, 9): working_sheet.cell(row=current_line, column=cell_nr).border = upper_border
+                    for k, attri in enumerate(('Energy', 'zpe', 'entropy', 'free_E')):
+                        working_sheet.cell(row=current_line, column=5 + k).value = match_adsorbate(adsorbate, pd_data, struc, charge, attri, xc=sheet_name, verbose=verbose)
+
+                    working_sheet.cell(row=current_line, column=10).value = match_adsorbate(adsorbate, pd_data, struc, charge, 'solvation_E', xc=sheet_name, verbose=verbose)
+                    if working_sheet.cell(row=current_line, column=8).value != None: match_adsorbate(adsorbate, pd_data, struc, charge, 'free_E', xc=sheet_name, verbose=verbose) + match_adsorbate(adsorbate, pd_data, struc, charge, 'solvation_E', xc=sheet_name, verbose=verbose)
+                    current_line += 1
+            for cell_nr in range(1, 12): working_sheet.cell(row=current_line, column=cell_nr).border = upper_border
     excel_file.save('rmc_adsorp_dat.xlsx')
 
 
