@@ -26,10 +26,33 @@ G_h2 = E_h2 + H2_ZPE - H2_ts
 
 G_o2 = 2 * (2.46 + G_h2o - G_h2)
 
+H2 = dict(
+    Energy=-E_h2,
+    zpe=H2_ZPE,
+    entropy=H2_ts,
+    free_E=G_h2o,
+    solvation_E=0,
+)
+
+H2O = dict(
+    Energy=E_h2o,
+    zpe=H2O_ZPE,
+    entropy=H2O_ts,
+    free_E=G_h2o,
+    solvation_E=0,
+)
+
+O2 = dict(
+    Energy=2 * (2.46 + E_h2o - E_h2),
+    zpe=0,
+    entropy=0,
+    free_E=G_o2,
+    solvation_E=0,
+)
 
 def fill_gas_page(sheet):
-    sheet.cell(2,1,'H2')
-    sheet.cell(2,2,G_h2o)
+    sheet.cell(2, 1, 'H2')
+    sheet.cell(2, 2, G_h2o)
 
     sheet.cell(3, 1, 'H20')
     sheet.cell(3, 2, G_h2o)
@@ -45,41 +68,41 @@ def get_energy(panda, catalyst: str, charge: str, adsorbate: str, attribute: str
     return panda.query('structure_str == @catalyst and gpaw_charge == @charge and xc == @xc and adsorbate_str == @adsorbate and energy.notna()').get(attribute).iloc[0]
 
 
-def match_adsorbate(adsorbate: str, pd_data, struc: str, charge: str, attribute: str, xc: str, verbose: bool = False) -> float:
+def match_adsorbate(adsorbate: str, pd_data, struc: str, charge: str, attribute: str, xc: str, verbose: bool = False) -> float | None:
     match adsorbate:
         case 'O':
             try:
-                return get_energy(pd_data, struc, charge, adsorbate, attribute, xc) - get_energy(pd_data, struc, charge, 'None', attribute, xc) - G_h2o + G_h2
+                return get_energy(pd_data, struc, charge, adsorbate, attribute, xc) - get_energy(pd_data, struc, charge, 'None', attribute, xc) - H2O[attribute] + H2[attribute]
             except:
                 if verbose: traceback.print_exc()
         case 'OH':
             try:
-                return get_energy(pd_data, struc, charge, adsorbate, attribute, xc) - get_energy(pd_data, struc, charge,'None', attribute, xc) - G_h2o + 0.5 * G_h2
+                return get_energy(pd_data, struc, charge, adsorbate, attribute, xc) - get_energy(pd_data, struc, charge,'None', attribute, xc) - H2O[attribute] + 0.5 * H2[attribute]
             except:
                 if verbose: traceback.print_exc()
         case 'OOH':
             try:
-                return get_energy(pd_data, struc, charge, adsorbate, attribute, xc) - get_energy(pd_data, struc, charge,'None', attribute, xc) - 2 * G_h2o + 1.5 * G_h2
+                return get_energy(pd_data, struc, charge, adsorbate, attribute, xc) - get_energy(pd_data, struc, charge,'None', attribute, xc) - 2 * H2O[attribute] + 1.5 * H2[attribute]
             except:
                 if verbose: traceback.print_exc()
         case 'OH_O':
             try:
-                return get_energy(pd_data, struc, charge, adsorbate, attribute, xc) - get_energy(pd_data, struc, charge, 'None', attribute, xc) - 2 * G_h2o + 1.5 * G_h2
+                return get_energy(pd_data, struc, charge, adsorbate, attribute, xc) - get_energy(pd_data, struc, charge, 'None', attribute, xc) - 2 * H2O[attribute] + 1.5 * H2[attribute]
             except:
                 if verbose: traceback.print_exc()
         case 'OH_OH':
             try:
-                return get_energy(pd_data, struc, charge, adsorbate, attribute, xc) - get_energy(pd_data, struc, charge, 'None', attribute, xc) - 2 * G_h2o + G_h2
+                return get_energy(pd_data, struc, charge, adsorbate, attribute, xc) - get_energy(pd_data, struc, charge, 'None', attribute, xc) - 2 * H2O[attribute] + H2[attribute]
             except:
                 if verbose: traceback.print_exc()
         case 'OOH_O':
             try:
-                return get_energy(pd_data, struc, charge, adsorbate, attribute, xc) - get_energy(pd_data, struc, charge, 'None', attribute, xc) - 3 * G_h2o + 2.5 * G_h2
+                return get_energy(pd_data, struc, charge, adsorbate, attribute, xc) - get_energy(pd_data, struc, charge, 'None', attribute, xc) - 3 * H2O[attribute] + 2.5 * H2[attribute]
             except:
                 if verbose: traceback.print_exc()
         case 'OOH_OH':
             try:
-                return get_energy(pd_data, struc, charge, adsorbate, attribute, xc) - get_energy(pd_data, struc, charge, 'None', attribute, xc) - 3 * G_h2o + 2 * G_h2
+                return get_energy(pd_data, struc, charge, adsorbate, attribute, xc) - get_energy(pd_data, struc, charge, 'None', attribute, xc) - 3 * H2O[attribute] + 2 * H2[attribute]
             except:
                 if verbose: traceback.print_exc()
         case _:
