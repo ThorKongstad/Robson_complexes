@@ -127,7 +127,11 @@ def main(db_directory: str, verbose: bool):
                         working_sheet.cell(row=current_line, column=5 + k).value = match_adsorbate(adsorbate, pd_data, struc, charge, attri, xc=sheet_name, verbose=verbose)
 
                     working_sheet.cell(row=current_line, column=10).value = match_adsorbate(adsorbate, pd_data, struc, charge, 'solvation_E', xc=sheet_name, verbose=verbose)
-                    if working_sheet.cell(row=current_line, column=11).value is not None: match_adsorbate(adsorbate, pd_data, struc, charge, 'free_E', xc=sheet_name, verbose=verbose) + match_adsorbate(adsorbate, pd_data, struc, charge, 'solvation_E', xc=sheet_name, verbose=verbose)
+                    if working_sheet.cell(row=current_line, column=8).value is not None:
+                        try:
+                            working_sheet.cell(row=current_line, column=11).value = match_adsorbate(adsorbate, pd_data, struc, charge, 'free_E', xc=sheet_name, verbose=verbose) + match_adsorbate(adsorbate, pd_data, struc, charge, 'solvation_E', xc=sheet_name, verbose=verbose)
+                        except:
+                            if verbose: traceback.print_exc()
                     current_line += 1
             for cell_nr in range(1, 12): working_sheet.cell(row=current_line, column=cell_nr).border = upper_border
     excel_file.save('rmc_adsorp_dat.xlsx')
