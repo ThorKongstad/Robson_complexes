@@ -27,7 +27,7 @@ G_h2 = E_h2 + H2_ZPE - H2_ts
 G_o2 = 2 * (2.46 + G_h2o - G_h2)
 
 H2 = dict(
-    Energy=-E_h2,
+    energy=-E_h2,
     zpe=H2_ZPE,
     entropy=H2_ts,
     free_E=G_h2o,
@@ -35,7 +35,7 @@ H2 = dict(
 )
 
 H2O = dict(
-    Energy=E_h2o,
+    energy=E_h2o,
     zpe=H2O_ZPE,
     entropy=H2O_ts,
     free_E=G_h2o,
@@ -43,7 +43,7 @@ H2O = dict(
 )
 
 O2 = dict(
-    Energy=2 * (2.46 + E_h2o - E_h2),
+    energy=2 * (2.46 + E_h2o - E_h2),
     zpe=0,
     entropy=0,
     free_E=G_o2,
