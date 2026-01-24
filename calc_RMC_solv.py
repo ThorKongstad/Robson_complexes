@@ -36,8 +36,7 @@ def optimiser_observer(atoms: Atoms, db_dir: str, db_id: int, goals: list[float]
         if world.rank == 0: update_db(db_dir, dict(id=db_id, atoms=atoms.copy(), relaxed=True, vibration=False, vib_en=False))
 
 
-def main(db_id: int, db_dir: str):
-
+def main(db_id: int, db_dir: str, fd_bool: bool = False):
     # read from  database
     if not os.path.basename(db_dir) in os.listdir(db_path if len(db_path := os.path.dirname(db_dir))>0 else '.'): raise FileNotFoundError("Can't find database")
     with db.connect(db_dir) as db_obj:
@@ -56,7 +55,10 @@ def main(db_id: int, db_dir: str):
 
     dft_calc_dict = pickle.loads(dft_calc_pickle)
 
-    dft_calc_dict['txt'] = f'{functional_folder}/sp_id{db_id}_{structure_str}_{adsorbate_str}.txt'
+    if fd_bool:
+        dft_calc_dict['mode'] = 'fd'
+
+    dft_calc_dict['txt'] = f'{functional_folder}/sp{'_fd' if fd_bool else ''}_id{db_id}_{structure_str}_{adsorbate_str}.txt'
     calc = GPAW(**dft_calc_dict)
     atoms.set_calculator(calc)
 
@@ -64,7 +66,7 @@ def main(db_id: int, db_dir: str):
 
     atomic_radii = {'H': 1.09, 'C': 1.77, 'N': 1.66, 'O': 1.50, 'Co': 2.4, 'Fe': 2.44}
 
-    dft_calc_dict['txt'] = f'{functional_folder}/solv_id{db_id}_{structure_str}_{adsorbate_str}.txt'
+    dft_calc_dict['txt'] = f'{functional_folder}/solv{'_fd' if fd_bool else ''}_id{db_id}_{structure_str}_{adsorbate_str}.txt'
 
     calc = SolvationGPAW(
         cavity=EffectivePotentialCavity(
@@ -87,6 +89,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('data_base_id',type=int)
     parser.add_argument('database', help='directory to the database.')
+    parser.add_argument('-fd', '--finite_differences', action='store_true')
     args = parser.parse_args()
 
-    main(args.data_base_id, args.database)
+    main(args.data_base_id, args.database, args.finite_differences)
