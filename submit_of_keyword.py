@@ -49,7 +49,7 @@ if __name__ == '__main__':
     parser.add_argument('--filter', '-f', help='current implemented filters are isgga, ismgga and collNotExist="COLLOM" t. a "," denotes an or and "&&" denotes an and')
     parser.add_argument('--local', '-local', action='store_true')
     parser.add_argument('-id', '--print_id', action='store_true')
-    parser.add_argument('-ss', '--submission_script', help='directory to the slurm submission script.', default='/groups/kemi/thorkong/katla_submission/submit_katla_GP236_static')
+    parser.add_argument('-ss', '--submission_script', help='directory to the slurm submission script.')
     args = parser.parse_args()
 
     main(args.keyword, args.python_script, args.filter, args.database, local=args.local, slurm=args.submission_script)
