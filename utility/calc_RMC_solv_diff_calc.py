@@ -19,6 +19,7 @@ from ase import Atoms
 from ase.units import mol, kJ, kcal, Pascal, m
 from gpaw import GPAW, PW, Davidson
 from gpaw.utilities import h2gpts
+from gpaw import FermiDirac, PoissonSolver, Mixer, MixerFull
 from gpaw.solvation import (
     SolvationGPAW,
     EffectivePotentialCavity,
@@ -36,7 +37,7 @@ def optimiser_observer(atoms: Atoms, db_dir: str, db_id: int, goals: list[float]
         if world.rank == 0: update_db(db_dir, dict(id=db_id, atoms=atoms.copy(), relaxed=True, vibration=False, vib_en=False))
 
 
-def main(db_id: int, db_dir: str, fd_bool: bool = False):
+def main(db_id: int, db_dir: str, fd_bool: bool = False, beta=0.05, maxold=5, weight=50):
     # read from  database
     if not os.path.basename(db_dir) in os.listdir(db_path if len(db_path := os.path.dirname(db_dir))>0 else '.'): raise FileNotFoundError("Can't find database")
     with db.connect(db_dir) as db_obj:
@@ -47,13 +48,29 @@ def main(db_id: int, db_dir: str, fd_bool: bool = False):
         adsorbate_str = row.get('adsorbate_str')
         dftd4_bool = row.get('dftd4')
         dft_calc_pickle = eval(row.data.get('dft_calc_pickle'))
+        charge = row.get('gpaw_charge')
+        grid_spacing = row.get('grid_spacing')
 
     parprint(f'outstd of solvation calculation for db entry {db_id} with structure: {structure_str}, adsorbate: {adsorbate_str} and functional: {functional}')
 
     functional_folder = sanitize(functional) + ('_D4' if dftd4_bool else '')
     if world.rank == 0: folder_exist(functional_folder)
 
-    dft_calc_dict = pickle.loads(dft_calc_pickle)
+    hubberd_U = False
+    hubberd_U_dict = dict(setups={'O': ':p,8.9,0', 'N': ':p,6.0,0', 'Fe': ':d,4.1,0', 'Co': ':d,4.4,0'}) if hubberd_U else {}
+
+    dft_calc_dict = dict(
+        xc=functional,
+        basis='dzp',
+        mode={'name': 'pw', 'ecut': 500, 'force_complex_dtype': True},
+        gpts=h2gpts(grid_spacing, atoms.get_cell(), idiv=4),
+        parallel={'augment_grids': True, 'sl_auto': True},
+        spinpol=charge != 0, # or spinpol,
+        mixer=MixerFull(beta=beta, nmaxold=maxold, weight=weight),
+        charge=charge,
+        txt=f'{functional_folder}/opt_id{db_id}_{structure_str}_{adsorbate_str}_diff_calc.txt',
+        **hubberd_U_dict
+    )
 
     if fd_bool:
         dft_calc_dict['mode'] = 'fd'
