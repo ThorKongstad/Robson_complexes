@@ -52,4 +52,4 @@ if __name__ == '__main__':
     parser.add_argument('-ss', '--submission_script', help='directory to the slurm submission script.')
     args = parser.parse_args()
 
-    main(args.keyword, args.python_script, args.filter, args.database, local=args.local, slurm=args.submission_script)
+    main(args.keyword, args.python_script, args.filter, args.database, local=args.local, slurm=args.submission_script, print_id=args.print_id)
