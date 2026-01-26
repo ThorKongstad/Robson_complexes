@@ -30,7 +30,7 @@ H2 = dict(
     energy=-E_h2,
     zpe=H2_ZPE,
     entropy=H2_ts,
-    free_E=G_h2o,
+    free_E=G_h2,
     solvation_E=0,
 )
 
