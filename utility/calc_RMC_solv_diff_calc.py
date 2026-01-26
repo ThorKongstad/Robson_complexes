@@ -107,6 +107,9 @@ if __name__ == '__main__':
     parser.add_argument('data_base_id',type=int)
     parser.add_argument('database', help='directory to the database.')
     parser.add_argument('-fd', '--finite_differences', action='store_true')
+    parser.add_argument('--beta', '-b', default=0.05, type=float)
+    parser.add_argument('--maxold', '-mo', default=5, type=int)
+    parser.add_argument('--weight', '-w', default=50, type=float)
     args = parser.parse_args()
 
-    main(args.data_base_id, args.database, args.finite_differences)
+    main(args.data_base_id, args.database, args.finite_differences,args.beta, args.maxold, args.weight)
