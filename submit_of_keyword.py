@@ -16,7 +16,7 @@ def multi_filter_or(row: AtomsRow, funcs: Sequence[Callable[[AtomsRow], bool]]) 
 def multi_filter_and(row: AtomsRow, funcs: Sequence[Callable[[AtomsRow], bool]]) -> bool: return all(func(row) for func in funcs)
 
 
-def main(key: str, python_scribt: str, selection_filter: Optional[str] = None, db_dir: str = 'molreact.db', local: bool = False, slurm: str = '/groups/kemi/thorkong/katla_submission/submit_katla_GP228_static'):
+def main(key: str, python_scribt: str, selection_filter: Optional[str] = None, db_dir: str = 'molreact.db', local: bool = False, slurm: str = '/groups/kemi/thorkong/katla_submission/submit_katla_GP228_static', print_id: bool = False):
     if not os.path.basename(db_dir) in os.listdir(db_path if len(db_path := os.path.dirname(db_dir)) > 0 else '.'): raise FileNotFoundError("Can't find database")
     func_list = []
     if selection_filter is not None:
@@ -37,7 +37,8 @@ def main(key: str, python_scribt: str, selection_filter: Optional[str] = None, d
 
     for row in row_iter:
         if local: call(['python', python_scribt, str(row.get("id")), db_dir])
-        else: call(['bash', slurm, python_scribt, str(row.get("id")), db_dir])
+        elif slurm is not None: call(['bash', slurm, python_scribt, str(row.get("id")), db_dir])
+        if print_id: print(row.get("id"))
 
 
 if __name__ == '__main__':
@@ -47,6 +48,7 @@ if __name__ == '__main__':
     parser.add_argument('database', help='directory to the database.')
     parser.add_argument('--filter', '-f', help='current implemented filters are isgga, ismgga and collNotExist="COLLOM" t. a "," denotes an or and "&&" denotes an and')
     parser.add_argument('--local', '-local', action='store_true')
+    parser.add_argument('-id', '--print_id', action='store_true')
     parser.add_argument('-ss', '--submission_script', help='directory to the slurm submission script.', default='/groups/kemi/thorkong/katla_submission/submit_katla_GP236_static')
     args = parser.parse_args()
 
