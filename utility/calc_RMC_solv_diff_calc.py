@@ -51,7 +51,7 @@ def main(db_id: int, db_dir: str, fd_bool: bool = False, beta=0.05, maxold=5, we
         charge = row.get('gpaw_charge')
         grid_spacing = row.get('grid_spacing')
 
-    parprint(f'outstd of solvation calculation for db entry {db_id} with structure: {structure_str}, adsorbate: {adsorbate_str} and functional: {functional}')
+    parprint(f'outstd of solvation calculation with different calculator for db entry {db_id} with structure: {structure_str}, adsorbate: {adsorbate_str} and functional: {functional}')
 
     functional_folder = sanitize(functional) + ('_D4' if dftd4_bool else '')
     if world.rank == 0: folder_exist(functional_folder)
