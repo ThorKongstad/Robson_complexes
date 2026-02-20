@@ -112,4 +112,4 @@ if __name__ == '__main__':
     parser.add_argument('--weight', '-w', default=50, type=float)
     args = parser.parse_args()
 
-    main(args.data_base_id, args.database, args.finite_differences,args.beta, args.maxold, args.weight)
+    main(args.data_base_id, args.database, args.finite_differences, args.beta, args.maxold, args.weight)

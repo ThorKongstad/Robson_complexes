@@ -50,7 +50,7 @@ def main(db_id: int, db_dir: str, beta=0.05, maxold=5, weight=50, reset_spin: bo
 #        dft_calc_pickle = eval(row.data.get('dft_calc_pickle'))
         initial_fmax = row.get('fmax')
 
-    parprint(f'outstd of vib calculation for db entry {db_id} with structure: {structure_str}, adsorbate: {adsorbate_str} and functional: {functional}')
+    parprint(f'outstd of vib calculation with different calculator for db entry {db_id} with structure: {structure_str}, adsorbate: {adsorbate_str} and functional: {functional}')
 
     functional_folder = sanitize(functional) + ('_D4' if dftd4_bool else '')
     if world.rank == 0: folder_exist(functional_folder)

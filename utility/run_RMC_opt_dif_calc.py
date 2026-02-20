@@ -46,7 +46,7 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False, beta
 #        dft_calc_pickle = eval(row.data.get('dft_calc_pickle'))
         initial_fmax = row.get('fmax')
 
-    parprint(f'outstd of opt calculation for db entry {db_id} with structure: {structure_str}, adsorbate: {adsorbate_str} and functional: {functional}')
+    parprint(f'outstd of opt calculation with different calculator for db entry {db_id} with structure: {structure_str}, adsorbate: {adsorbate_str} and functional: {functional}')
 
     functional_folder = sanitize(functional) + ('_D4' if dftd4_bool else '')
     if world.rank == 0: folder_exist(functional_folder)
