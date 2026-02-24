@@ -10,19 +10,23 @@ import ase.db as db
 from ase import Atoms
 
 
-def main(db_id: int, db_dir: str):
+def main(db_id: int, db_dir: str, verbose: bool=False):
     with db.connect(db_dir) as db_obj:
         row = db_obj.get(selection=f'id={db_id}')
         atoms: Atoms = row.toatoms()
 
     if len(atoms.constraints) > 0:
         print(f'Row number: {db_id} have {len(atoms.constraints)} constraints encompassing {sum(len(con.indices) for con in atoms.constraints)} atoms.')
+    else:
+        if verbose:
+            print('Row number: {db_id} has no constraints.')
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('data_base_id',type=int)
+    parser.add_argument('data_base_id', type=int)
     parser.add_argument('database', help='directory to the database.')
+    parser.add_argument('-v', '--verbose', action='store_true')
     args = parser.parse_args()
 
-    main(args.data_base_id, args.database)
+    main(args.data_base_id, args.database,verbose=args.verbose)
