@@ -19,7 +19,7 @@ def main(db_id: int, db_dir: str, verbose: bool=False):
         print(f'Row number: {db_id} have {len(atoms.constraints)} constraints encompassing {sum(len(con.indices) for con in atoms.constraints)} atoms.')
     else:
         if verbose:
-            print('Row number: {db_id} has no constraints.')
+            print(f'Row number: {db_id} has no constraints.')
 
 
 if __name__ == '__main__':
