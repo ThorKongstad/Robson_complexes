@@ -32,7 +32,7 @@ def main(db_id: int, db_dir: str):
 
     atoms.set_constraint(constraint=FixedPlane(locked_metals, direction=[0, 0, 1]))
 
-    update_db(db_id, atoms)
+    update_db(db_dir, dict(id=db_id, atoms=atoms))
 
 
 if __name__ == '__main__':
