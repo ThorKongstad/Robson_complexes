@@ -12,7 +12,11 @@ from ase import Atoms
 
 def get_indices(constraint):
     try: return constraint.indices
-    except AttributeError: return constraint.a
+    except AttributeError: pass
+    try: return constraint.a
+    except AttributeError: pass
+    try: return constraint.index
+    except AttributeError: pass
 
 
 def main(db_id: int, db_dir: str, verbose: bool=False):
