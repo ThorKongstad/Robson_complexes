@@ -4,7 +4,7 @@ import sys
 import pathlib
 import pickle
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
+sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent))
 from Robson_complexes import sanitize, folder_exist, update_db
 
 import numpy as np
