@@ -65,7 +65,7 @@ def fill_gas_page(sheet):
 
 
 def get_energy(panda, catalyst: str, charge: str, adsorbate: str, attribute: str, xc: str = 'RPBE') -> float:
-    return panda.query('structure_str == @catalyst and gpaw_charge == @charge and xc == @xc and adsorbate_str == @adsorbate and energy.notna()').get(attribute).iloc[0]
+    return min(panda.query('structure_str == @catalyst and gpaw_charge == @charge and xc == @xc and adsorbate_str == @adsorbate and energy.notna()').get(attribute).iloc)
 
 
 def match_adsorbate(adsorbate: str, pd_data, struc: str, charge: str, attribute: str, xc: str, verbose: bool = False) -> float | None:
