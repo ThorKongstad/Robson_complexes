@@ -30,7 +30,7 @@ def optimiser_observer(atoms: Atoms, db_dir: str, db_id: int, goals: list[float]
         if world.rank == 0: update_db(db_dir, dict(id=db_id, atoms=atoms.copy(), relaxed=True, vibration=False, vib_en=False))
 
 
-def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False, beta=0.05, maxold=5, weight=50):
+def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False, beta=0.05, maxold=5, weight=50, diff_convergence: bool = False):
 
     # read from  database
     if not os.path.basename(db_dir) in os.listdir(db_path if len(db_path := os.path.dirname(db_dir))>0 else '.'): raise FileNotFoundError("Can't find database")
@@ -54,6 +54,10 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False, beta
     hubberd_U = False
     hubberd_U_dict = dict(setups={'O': ':p,8.9,0', 'N': ':p,6.0,0', 'Fe': ':d,4.1,0', 'Co': ':d,4.4,0'}) if hubberd_U else {}
 
+    if diff_convergence: convergence = {'convergence': {'density': Density(0.0005)}}
+    else: convergence = {}
+
+
     calc_par_dict = dict(
         xc=functional,
         basis='dzp',
@@ -64,7 +68,8 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False, beta
         mixer=MixerFull(beta=beta, nmaxold=maxold, weight=weight),
         charge=charge,
         txt=f'{functional_folder}/opt_id{db_id}_{structure_str}_{adsorbate_str}_diff_calc.txt',
-        **hubberd_U_dict
+        **hubberd_U_dict,
+        **convergence
     )
 
     if dftd4_bool: calc = SumCalculator([DFTD4(method=functional), GPAW(**calc_par_dict)])
@@ -120,6 +125,7 @@ if __name__ == '__main__':
     parser.add_argument('--beta', '-b', default=0.05, type=float)
     parser.add_argument('--maxold','-mo', default=5, type=int)
     parser.add_argument('--weight', '-w', default=50, type=float)
+    parser.add_argument('--diff_con', '-dc', default=False, action='store_true')
     args = parser.parse_args()
 
-    main(args.data_base_id, args.database, fmax=args.fmax, restart=args.restart, beta=args.beta, maxold=args.maxold, weight=args.weight)
+    main(args.data_base_id, args.database, fmax=args.fmax, restart=args.restart, beta=args.beta, maxold=args.maxold, weight=args.weight, diff_convergence=args.diff_con)
