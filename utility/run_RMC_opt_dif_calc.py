@@ -20,6 +20,7 @@ from ase import Atoms
 from gpaw import GPAW, PW, Davidson
 from gpaw import FermiDirac, PoissonSolver, Mixer, MixerFull
 from gpaw.utilities import h2gpts
+from gpaw.convergence_criteria import Density
 from dftd4.ase import DFTD4
 
 
