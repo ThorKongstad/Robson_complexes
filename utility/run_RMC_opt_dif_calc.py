@@ -18,7 +18,7 @@ from ase.calculators.mixing import SumCalculator
 from ase.parallel import parprint, world, barrier
 from ase import Atoms
 from gpaw import GPAW, PW, Davidson
-from gpaw import FermiDirac, PoissonSolver, Mixer, MixerFull
+from gpaw import FermiDirac, PoissonSolver, Mixer, MixerFull, FFTMixerFull
 from gpaw.mixer import _definemixerfunc
 from gpaw.utilities import h2gpts
 from gpaw.convergence_criteria import Density
@@ -32,7 +32,7 @@ def optimiser_observer(atoms: Atoms, db_dir: str, db_id: int, goals: list[float]
         if world.rank == 0: update_db(db_dir, dict(id=db_id, atoms=atoms.copy(), relaxed=True, vibration=False, vib_en=False))
 
 
-def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False, beta=0.05, maxold=5, weight=50, diff_convergence: bool = False, fullBroyden: bool = False):
+def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False, beta=0.05, maxold=5, weight=50, diff_convergence: bool = False, fullBroyden: bool = False, fullFFT: bool = False):
 
     # read from  database
     if not os.path.basename(db_dir) in os.listdir(db_path if len(db_path := os.path.dirname(db_dir))>0 else '.'): raise FileNotFoundError("Can't find database")
@@ -62,6 +62,8 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False, beta
     if fullBroyden:
         BroydenMixerFull = _definemixerfunc('fullspin', 'broyden')
         mixer = BroydenMixerFull(beta=beta, nmaxold=maxold, weight=weight)
+    elif fullFFT:
+        mixer = FFTMixerFull(beta=beta, nmaxold=maxold, weight=weight)
     else:
         mixer = MixerFull(beta=beta, nmaxold=maxold, weight=weight)
 
