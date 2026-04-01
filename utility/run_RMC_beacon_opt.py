@@ -246,14 +246,15 @@ class AdsorbateRMC:
 def main(RMC_struture: str, RMC_binding_atom: int, adsorbate: str, charge: int):
     RMC_atoms: ase.Atoms = read(RMC_struture)
 
+    rng = np.random.RandomState(42)
+
     match adsorbate:
-        case 'OH': mol_gen = OHGenerator()
-        case 'OOH': mol_gen = OOHGenerator()
+        case 'OH': mol_gen = OHGenerator(rng=rng)
+        case 'OOH': mol_gen = OOHGenerator(rng=rng)
         case _: raise NotImplementedError
 
     potential = RepulsivePotential(prefactor=10, rc=0.9)
     relaxer = AtomsRelaxer(calculator=potential, with_unit_cell=False)
-    rng = np.random.RandomState(42)
 
     system_gen = AdsorbateRMC(mol_gen, RMC_atoms, RMC_binding_atom, dr=2, relaxer=relaxer, rng=rng)
     initatomsgen = InitatomsGenerator(sgen=system_gen, rgen=system_gen)
