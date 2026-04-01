@@ -247,8 +247,8 @@ def main(RMC_struture: str, RMC_binding_atom: int, adsorbate: str, charge: int):
     RMC_atoms: ase.Atoms = read(RMC_struture)
 
     match adsorbate:
-        case 'OH': mol_gen = OHGenerator
-        case 'OOH': mol_gen = OOHGenerator
+        case 'OH': mol_gen = OHGenerator()
+        case 'OOH': mol_gen = OOHGenerator()
         case _: raise NotImplementedError
 
     potential = RepulsivePotential(prefactor=10, rc=0.9)
