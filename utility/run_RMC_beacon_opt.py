@@ -22,7 +22,7 @@ from ase.data import covalent_radii, atomic_numbers
 from gpaw import GPAW, PW, Davidson
 from gpaw.utilities import h2gpts
 from gpaw import FermiDirac, PoissonSolver, Mixer, MixerFull
-from dftd4.ase import DFTD4
+#from dftd4.ase import DFTD4
 from gpatom.beacon.beacon import (BEACON, SurrogateOptimizer,
                                    InitatomsGenerator, Checker)
 from gpatom.gpfp.prior import RepulsivePotential, CalculatorPrior
@@ -256,7 +256,7 @@ def main(RMC_struture: str, RMC_binding_atom: int, adsorbate: str, charge: int):
     potential = RepulsivePotential(prefactor=10, rc=0.9)
     relaxer = AtomsRelaxer(calculator=potential, with_unit_cell=False)
 
-    system_gen = AdsorbateRMC(mol_gen, RMC_atoms, RMC_binding_atom, dr=2, relaxer=relaxer, rng=rng)
+    system_gen = AdsorbateRMC(mol_gen, RMC_atoms, RMC_binding_atom, dr=1, relaxer=relaxer, rng=rng)
     initatomsgen = InitatomsGenerator(sgen=system_gen, rgen=system_gen)
 
     prior = CalculatorPrior(potential, constant=0)
@@ -304,7 +304,8 @@ def main(RMC_struture: str, RMC_binding_atom: int, adsorbate: str, charge: int):
         txt=f'{os.path.basename(RMC_struture).split(".")[0]}_{adsorbate}.txt',
     )
 
-    calculator = SumCalculator([DFTD4(method='RPBE'), GPAW(**calc_par_dict)])
+    calculator = GPAW(**calc_par_dict)
+#    calculator = SumCalculator([DFTD4(method='RPBE'), GPAW(**calc_par_dict)])
 
     go = BEACON(calculator,
                 model,
