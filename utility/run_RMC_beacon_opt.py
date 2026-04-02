@@ -289,8 +289,8 @@ def main(RMC_struture: str, RMC_binding_atom: int, adsorbate: str, charge: int):
     # the checker check structure likeness
     checker = Checker(dist_limit=0.5, rlimit=0.4)
 
-    folder = f'beacon_{os.path.basename(RMC_struture).split(".")[0]}_{adsorbate}'
-    folder_exist(folder)
+    #folder = f'beacon_{os.path.basename(RMC_struture).split(".")[0]}_{adsorbate}'
+    #folder_exist(folder)
 
     calc_par_dict = dict(
         xc='RPBE',
@@ -301,7 +301,7 @@ def main(RMC_struture: str, RMC_binding_atom: int, adsorbate: str, charge: int):
         spinpol=charge != 0,  # or spinpol,
         mixer=MixerFull(beta=0.05, nmaxold=5, weight=50),
         charge=charge,
-        txt=f'{folder}/{os.path.basename(RMC_struture).split(".")[0]}_{adsorbate}.txt',
+        txt=f'{os.path.basename(RMC_struture).split(".")[0]}_{adsorbate}.txt',
     )
 
     calculator = SumCalculator([DFTD4(method='RPBE'), GPAW(**calc_par_dict)])
