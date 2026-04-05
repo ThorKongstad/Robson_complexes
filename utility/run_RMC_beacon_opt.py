@@ -19,6 +19,7 @@ import numpy as np
 from copy import deepcopy as dc
 from ase.constraints import FixAtoms, FixBondLengths
 from ase.data import covalent_radii, atomic_numbers
+from ase.constraints import FixAtoms, FixedPlane
 from gpaw import GPAW, PW, Davidson
 from gpaw.utilities import h2gpts
 from gpaw import FermiDirac, PoissonSolver, Mixer, MixerFull
@@ -81,7 +82,7 @@ class OHGenerator:
     def get(self):
 
         atoms = Atoms('OH', positions=[[0, 0, 0], [0, 0, 0.96]])
-#        atoms.constraints.append(FixBondLengths([[0,1]]))
+        atoms.constraints.append(FixBondLengths([[0,1]]))
 
         for axis in ['z']:
             angle = self.rng.uniform(0, 360)
@@ -96,13 +97,30 @@ class OOHGenerator:
     def get(self):
 
         atoms = Atoms('OOH', positions=[[0, 0, 0], [0, 0, 1.330], [0.956, 0, 1.498]])
-#        atoms.constraints.append(FixBondLengths([[0,1]]))
-#        atoms.constraints.append(FixBondLengths([[1, 2]]))
+        atoms.constraints.append(FixBondLengths([[0,1]]))
+        atoms.constraints.append(FixBondLengths([[1, 2]]))
 
         for axis in ['z']:
             angle = self.rng.uniform(0, 360)
             atoms.rotate(angle, axis, rotate_cell=False)
         return atoms
+
+
+def reser_planer_constraints(RMC: Atoms) -> Atoms:
+    metal_symbol = ['Co', 'Fe']
+    metal_at, not_metal_at = [], []
+    for i, at in enumerate(RMC):
+        if at.symbol in metal_symbol:
+            metal_at.append(i)
+        else:
+            not_metal_at.append(i)
+    metal_z_pos = list(pos[2] for pos in RMC[metal_at].get_positions())
+    avg_metal_z_pos = np.mean(metal_z_pos)
+    locked_atoms = list(filter(lambda i: (RMC[i].position[2] < (avg_metal_z_pos + 0.4)) and RMC[i].symbol not in metal_symbol, list(range(len(RMC)))))
+
+    RMC.set_constraint(constraint=FixedPlane(locked_atoms, direction=[0, 0, 1]))
+
+    return RMC
 
 
 class AdsorbateRMC:
@@ -243,8 +261,10 @@ class AdsorbateRMC:
         ])
 
 
-def main(RMC_struture: str, RMC_binding_atom: int, adsorbate: str, charge: int):
+def main(RMC_struture: str, RMC_binding_atom: int, adsorbate: str, charge: int, set_constraints: bool = False):
     RMC_atoms: ase.Atoms = read(RMC_struture)
+
+    if set_constraints: RMC_atoms: ase.Atoms = reser_planer_constraints(RMC_atoms)
 
     rng = np.random.RandomState(42)
 
@@ -327,5 +347,6 @@ if __name__ == '__main__':
     parser.add_argument('RMC_binding_atom', type=int)
     parser.add_argument('adsorbate')
     parser.add_argument('charge', type=int)
+    parser.add_argument('-con', '--set_constraints', action='store_true')
 
     main(**vars(parser.parse_args()))
