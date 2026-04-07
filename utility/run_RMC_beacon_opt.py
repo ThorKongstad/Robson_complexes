@@ -261,7 +261,7 @@ class AdsorbateRMC:
         ])
 
 
-def main(RMC_struture: str, RMC_binding_atom: int, adsorbate: str, charge: int, set_constraints: bool = False):
+def main(RMC_struture: str, RMC_binding_atom: int, adsorbate: str, charge: int, set_constraints: bool = False, DFT_steps: int = 10):
     RMC_atoms: ase.Atoms = read(RMC_struture)
 
     if set_constraints: RMC_atoms: ase.Atoms = reser_planer_constraints(RMC_atoms)
@@ -333,7 +333,7 @@ def main(RMC_struture: str, RMC_binding_atom: int, adsorbate: str, charge: int, 
                 surropt=surropt,
                 checker=checker,
                 ninit=2,  # How many training points we want in initial set
-                ndft=10,  # How many TBlite calculations are done in total
+                ndft=DFT_steps,  # How many TBlite calculations are done in total
                 nsur=3,  # How many surrogate optimizations are done per cycle
                 write_surropt=True,  # Save surrogate relaxation end structures
                 write_surropt_trajs=True)  # Dont save trajectory files for all surrogate relaxations
@@ -348,5 +348,7 @@ if __name__ == '__main__':
     parser.add_argument('adsorbate')
     parser.add_argument('charge', type=int)
     parser.add_argument('-con', '--set_constraints', action='store_true')
+    parser.add_argument('-steps', '--DFT_steps', type=int, default=10)
+    args = parser.parse_args()
 
-    main(**vars(parser.parse_args()))
+    main(**vars(args))
