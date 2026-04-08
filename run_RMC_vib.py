@@ -84,7 +84,7 @@ def main(db_id: int, db_dir: str):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('data_base_id',type=int)
+    parser.add_argument('data_base_id', type=int)
     parser.add_argument('database', help='directory to the database.')
     args = parser.parse_args()
 
