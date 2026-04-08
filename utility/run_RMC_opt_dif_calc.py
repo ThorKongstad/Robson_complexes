@@ -18,6 +18,7 @@ import ase.db as db
 from ase.calculators.mixing import SumCalculator
 from ase.parallel import parprint, world, barrier
 from ase import Atoms
+from ase.io import read, write
 from gpaw import GPAW, PW, Davidson
 from gpaw import FermiDirac, PoissonSolver, Mixer, MixerFull
 from gpaw.mixer import FFTMixerFull, _definemixerfunc
@@ -33,14 +34,19 @@ def optimiser_observer(atoms: Atoms, db_dir: str, db_id: int, goals: list[float]
         if world.rank == 0: update_db(db_dir, dict(id=db_id, atoms=atoms.copy(), relaxed=True, vibration=False, vib_en=False))
 
 
-def get_mag_moments(id: int, db_dir: str):
+def get_mag_moments_db(id: int, db_dir: str):
     with db.connect(db_dir) as db_obj:
         row = db_obj.get(selection=f'id={id}')
         atoms: Atoms = row.toatoms()
     return atoms.get_magnetic_moments()
 
 
-def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False, beta=0.05, maxold=5, weight=50, diff_convergence: bool = False, fullBroyden: bool = False, fullFFT: bool = False, set_mag: Optional[tuple[int, str]] = None):
+def get_mag_moments_txt(txt_dir: str):
+    atoms = read(txt_dir,index=-1)
+    return atoms.get_magnetic_moments()
+
+
+def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False, beta=0.05, maxold=5, weight=50, diff_convergence: bool = False, fullBroyden: bool = False, fullFFT: bool = False, set_mag: Optional[str] = None):
     # read from  database
     if not os.path.basename(db_dir) in os.listdir(db_path if len(db_path := os.path.dirname(db_dir))>0 else '.'): raise FileNotFoundError("Can't find database")
     with db.connect(db_dir) as db_obj:
@@ -60,7 +66,7 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False, beta
     functional_folder = sanitize(functional) + ('_D4' if dftd4_bool else '')
     if world.rank == 0: folder_exist(functional_folder)
 
-    if set_mag: atoms.set_initial_magnetic_moments(get_mag_moments(*set_mag))
+    if set_mag: atoms.set_initial_magnetic_moments(get_mag_moments_txt(*set_mag))
 
     hubberd_U = False
     hubberd_U_dict = dict(setups={'O': ':p,8.9,0', 'N': ':p,6.0,0', 'Fe': ':d,4.1,0', 'Co': ':d,4.4,0'}) if hubberd_U else {}
@@ -150,7 +156,8 @@ if __name__ == '__main__':
     parser.add_argument('--diff_con', '-dc', default=False, action='store_true')
     parser.add_argument('--fullBroyden', '-fB', default=False, action='store_true')
     parser.add_argument('--fullFFT', '-fFF', default=False, action='store_true')
-    parser.add_argument('-mag', '--set_mag', nargs=2, action=IntStr_Parser, metavar=('data_base_id', 'database'))
+#    parser.add_argument('-mag', '--set_mag', nargs=2, action=IntStr_Parser, metavar=('data_base_id', 'database'))
+    parser.add_argument('-mag', '--set_mag',)
     args = parser.parse_args()
 
     main(args.data_base_id, args.database, fmax=args.fmax, restart=args.restart, beta=args.beta, maxold=args.maxold, weight=args.weight, diff_convergence=args.diff_con, fullBroyden=args.fullBroyden, fullFFT=args.fullFFT, set_mag=args.set_mag)
