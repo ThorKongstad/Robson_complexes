@@ -19,8 +19,8 @@ from ase.calculators.mixing import SumCalculator
 from ase.parallel import parprint, world, barrier
 from ase import Atoms
 from gpaw import GPAW, PW, Davidson
-from gpaw import FermiDirac, PoissonSolver, Mixer, MixerFull, FFTMixerFull
-from gpaw.mixer import _definemixerfunc
+from gpaw import FermiDirac, PoissonSolver, Mixer, MixerFull
+from gpaw.mixer import FFTMixerFull, _definemixerfunc
 from gpaw.utilities import h2gpts
 from gpaw.convergence_criteria import Density
 from dftd4.ase import DFTD4
