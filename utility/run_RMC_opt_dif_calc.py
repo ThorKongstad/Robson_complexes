@@ -7,6 +7,7 @@ import os
 import sys
 import pathlib
 import pickle
+from typing import Optional
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent))
 from Robson_complexes import sanitize, folder_exist, update_db
@@ -32,8 +33,14 @@ def optimiser_observer(atoms: Atoms, db_dir: str, db_id: int, goals: list[float]
         if world.rank == 0: update_db(db_dir, dict(id=db_id, atoms=atoms.copy(), relaxed=True, vibration=False, vib_en=False))
 
 
-def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False, beta=0.05, maxold=5, weight=50, diff_convergence: bool = False, fullBroyden: bool = False, fullFFT: bool = False):
+def get_mag_moments(id: int, db_dir: str):
+    with db.connect(db_dir) as db_obj:
+        row = db_obj.get(selection=f'id={id}')
+        atoms: Atoms = row.toatoms()
+    return atoms.get_magnetic_moments()
 
+
+def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False, beta=0.05, maxold=5, weight=50, diff_convergence: bool = False, fullBroyden: bool = False, fullFFT: bool = False, set_mag: Optional[tuple[int, str]] = None):
     # read from  database
     if not os.path.basename(db_dir) in os.listdir(db_path if len(db_path := os.path.dirname(db_dir))>0 else '.'): raise FileNotFoundError("Can't find database")
     with db.connect(db_dir) as db_obj:
@@ -52,6 +59,8 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False, beta
 
     functional_folder = sanitize(functional) + ('_D4' if dftd4_bool else '')
     if world.rank == 0: folder_exist(functional_folder)
+
+    if set_mag: atoms.set_initial_magnetic_moments(get_mag_moments(*set_mag))
 
     hubberd_U = False
     hubberd_U_dict = dict(setups={'O': ':p,8.9,0', 'N': ':p,6.0,0', 'Fe': ':d,4.1,0', 'Co': ':d,4.4,0'}) if hubberd_U else {}
@@ -126,6 +135,10 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False, beta
 
 
 if __name__ == '__main__':
+    class IntStr_Parser(argparse.Action):
+        def __call__(self, parser, args, values: tuple[str, str], option_string=None):
+            setattr(args, self.dest, (int(values[0]), values[1]))
+
     parser = argparse.ArgumentParser()
     parser.add_argument('data_base_id',type=int)
     parser.add_argument('database', help='directory to the database.')
@@ -137,6 +150,7 @@ if __name__ == '__main__':
     parser.add_argument('--diff_con', '-dc', default=False, action='store_true')
     parser.add_argument('--fullBroyden', '-fB', default=False, action='store_true')
     parser.add_argument('--fullFFT', '-fFF', default=False, action='store_true')
+    parser.add_argument('-mag', '--set_mag', nargs=2, action=IntStr_Parser, metaver=('data_base_id', 'database'))
     args = parser.parse_args()
 
-    main(args.data_base_id, args.database, fmax=args.fmax, restart=args.restart, beta=args.beta, maxold=args.maxold, weight=args.weight, diff_convergence=args.diff_con, fullBroyden=args.fullBroyden, fullFFT=args.fullFFT)
+    main(args.data_base_id, args.database, fmax=args.fmax, restart=args.restart, beta=args.beta, maxold=args.maxold, weight=args.weight, diff_convergence=args.diff_con, fullBroyden=args.fullBroyden, fullFFT=args.fullFFT, set_mag=args.set_mag)
