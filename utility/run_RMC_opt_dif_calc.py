@@ -150,7 +150,7 @@ if __name__ == '__main__':
     parser.add_argument('--diff_con', '-dc', default=False, action='store_true')
     parser.add_argument('--fullBroyden', '-fB', default=False, action='store_true')
     parser.add_argument('--fullFFT', '-fFF', default=False, action='store_true')
-    parser.add_argument('-mag', '--set_mag', nargs=2, action=IntStr_Parser, metaver=('data_base_id', 'database'))
+    parser.add_argument('-mag', '--set_mag', nargs=2, action=IntStr_Parser, metavar=('data_base_id', 'database'))
     args = parser.parse_args()
 
     main(args.data_base_id, args.database, fmax=args.fmax, restart=args.restart, beta=args.beta, maxold=args.maxold, weight=args.weight, diff_convergence=args.diff_con, fullBroyden=args.fullBroyden, fullFFT=args.fullFFT, set_mag=args.set_mag)
