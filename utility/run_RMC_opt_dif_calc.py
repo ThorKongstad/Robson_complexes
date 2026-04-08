@@ -66,7 +66,7 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False, beta
     functional_folder = sanitize(functional) + ('_D4' if dftd4_bool else '')
     if world.rank == 0: folder_exist(functional_folder)
 
-    if set_mag: atoms.set_initial_magnetic_moments(get_mag_moments_txt(*set_mag))
+    if set_mag: atoms.set_initial_magnetic_moments(get_mag_moments_txt(set_mag))
 
     hubberd_U = False
     hubberd_U_dict = dict(setups={'O': ':p,8.9,0', 'N': ':p,6.0,0', 'Fe': ':d,4.1,0', 'Co': ':d,4.4,0'}) if hubberd_U else {}
