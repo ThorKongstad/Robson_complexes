@@ -21,7 +21,7 @@ from ase import Atoms
 from ase.io import read, write
 from gpaw import GPAW, PW, Davidson
 from gpaw import FermiDirac, PoissonSolver, Mixer, MixerFull
-from gpaw.mixer import FFTMixerFull, _definemixerfunc
+from gpaw.mixer import FFTMixerFull, MixerDif, _definemixerfunc
 from gpaw.utilities import h2gpts
 from gpaw.convergence_criteria import Density
 from dftd4.ase import DFTD4
@@ -46,7 +46,7 @@ def get_mag_moments_txt(txt_dir: str):
     return atoms.get_magnetic_moments()
 
 
-def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False, beta=0.05, maxold=5, weight=50, diff_convergence: bool = False, fullBroyden: bool = False, fullFFT: bool = False, set_mag: Optional[str] = None):
+def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False, beta=0.05, maxold=5, weight=50, diff_convergence: bool = False, mixer: str = 'full', set_mag: Optional[str] = None):
     # read from  database
     if not os.path.basename(db_dir) in os.listdir(db_path if len(db_path := os.path.dirname(db_dir))>0 else '.'): raise FileNotFoundError("Can't find database")
     with db.connect(db_dir) as db_obj:
@@ -74,13 +74,17 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False, beta
     if diff_convergence: convergence = {'convergence': {'density': Density(0.0005)}}
     else: convergence = {}
 
-    if fullBroyden:
-        BroydenMixerFull = _definemixerfunc('fullspin', 'broyden')
-        mixer = BroydenMixerFull(beta=beta, nmaxold=maxold, weight=weight)
-    elif fullFFT:
-        mixer = FFTMixerFull(beta=beta, nmaxold=maxold, weight=weight)
-    else:
-        mixer = MixerFull(beta=beta, nmaxold=maxold, weight=weight)
+    match mixer:
+        case 'full':
+            mixer = MixerFull(beta=beta, nmaxold=maxold, weight=weight)
+        case 'fFF':
+            mixer = FFTMixerFull(beta=beta, nmaxold=maxold, weight=weight)
+        case 'fb':
+            BroydenMixerFull = _definemixerfunc('fullspin', 'broyden')
+            mixer = BroydenMixerFull(beta=beta, nmaxold=maxold, weight=weight)
+        case 'diff':
+            mixer = MixerDif(beta=beta, nmaxold=maxold, weight=weight, beta_m=1, nmaxold_m=1)
+        case _: raise NotImplementedError('Could not understand mixer')
 
     calc_par_dict = dict(
         xc=functional,
@@ -154,10 +158,9 @@ if __name__ == '__main__':
     parser.add_argument('--maxold','-mo', default=5, type=int)
     parser.add_argument('--weight', '-w', default=50, type=float)
     parser.add_argument('--diff_con', '-dc', default=False, action='store_true')
-    parser.add_argument('--fullBroyden', '-fB', default=False, action='store_true')
-    parser.add_argument('--fullFFT', '-fFF', default=False, action='store_true')
+    parser.add_argument('-mix', '--mixer', choices=['full', 'fFF', 'fb', 'diff'], default='full')
 #    parser.add_argument('-mag', '--set_mag', nargs=2, action=IntStr_Parser, metavar=('data_base_id', 'database'))
     parser.add_argument('-mag', '--set_mag',)
     args = parser.parse_args()
 
-    main(args.data_base_id, args.database, fmax=args.fmax, restart=args.restart, beta=args.beta, maxold=args.maxold, weight=args.weight, diff_convergence=args.diff_con, fullBroyden=args.fullBroyden, fullFFT=args.fullFFT, set_mag=args.set_mag)
+    main(args.data_base_id, args.database, fmax=args.fmax, restart=args.restart, beta=args.beta, maxold=args.maxold, weight=args.weight, diff_convergence=args.diff_con, mixer=args.mixer, set_mag=args.set_mag)
