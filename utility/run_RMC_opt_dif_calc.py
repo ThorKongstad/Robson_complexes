@@ -83,7 +83,7 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False, beta
             BroydenMixerFull = _definemixerfunc('fullspin', 'broyden')
             mixer = BroydenMixerFull(beta=beta, nmaxold=maxold, weight=weight)
         case 'diff':
-            mixer = MixerDif(beta=beta, nmaxold=maxold, weight=weight, beta_m=1, nmaxold_m=1)
+            mixer = MixerDif(beta=beta, nmaxold=maxold, weight=weight, beta_m=beta, nmaxold_m=1)
         case _: raise NotImplementedError('Could not understand mixer')
 
     calc_par_dict = dict(
