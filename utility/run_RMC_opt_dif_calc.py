@@ -20,7 +20,7 @@ from ase.parallel import parprint, world, barrier
 from ase import Atoms
 from ase.io import read, write
 from gpaw import GPAW, PW, Davidson
-from gpaw import FermiDirac, PoissonSolver, Mixer, MixerFull
+from gpaw import FermiDirac, PoissonSolver, Mixer, MixerFull, Davidson
 from gpaw.mixer import FFTMixerFull, MixerDif, _definemixerfunc
 from gpaw.utilities import h2gpts
 from gpaw.convergence_criteria import Density
@@ -46,7 +46,7 @@ def get_mag_moments_txt(txt_dir: str):
     return atoms.get_magnetic_moments()
 
 
-def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False, beta=0.05, maxold=5, weight=50, diff_convergence: bool = False, mixer: str = 'full', set_mag: Optional[str] = None):
+def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False, beta=0.05, maxold=5, weight=50, diff_convergence: bool = False, mixer: str = 'full', set_mag: Optional[str] = None, eigensolver: Optional[str]=None):
     # read from  database
     if not os.path.basename(db_dir) in os.listdir(db_path if len(db_path := os.path.dirname(db_dir))>0 else '.'): raise FileNotFoundError("Can't find database")
     with db.connect(db_dir) as db_obj:
@@ -75,16 +75,19 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False, beta
     else: convergence = {}
 
     match mixer:
-        case 'full':
-            mixer = MixerFull(beta=beta, nmaxold=maxold, weight=weight)
-        case 'fFF':
-            mixer = FFTMixerFull(beta=beta, nmaxold=maxold, weight=weight)
+        case 'full': mixer = MixerFull(beta=beta, nmaxold=maxold, weight=weight)
+        case 'fFF': mixer = FFTMixerFull(beta=beta, nmaxold=maxold, weight=weight)
         case 'fb':
             BroydenMixerFull = _definemixerfunc('fullspin', 'broyden')
             mixer = BroydenMixerFull(beta=beta, nmaxold=maxold, weight=weight)
-        case 'diff':
-            mixer = MixerDif(beta=beta, nmaxold=maxold, weight=weight, beta_m=beta, nmaxold_m=1)
+        case 'diff': mixer = MixerDif(beta=beta, nmaxold=maxold, weight=weight, beta_m=beta, nmaxold_m=1)
         case _: raise NotImplementedError('Could not understand mixer')
+
+    match eigensolver:
+        case 'rmm': eigensolver_kwargs = dict(eigensolver=dict(name='emm-diis'))
+        case 'dav': eigensolver_kwargs = dict(eigensolver=Davidson(3))
+        case 'cg': eigensolver_kwargs = dict(eigensolver=dict(name='cg'))
+        case _: eigensolver_kwargs = dict()
 
     calc_par_dict = dict(
         xc=functional,
@@ -97,7 +100,8 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False, beta
         charge=charge,
         txt=f'{functional_folder}/opt_id{db_id}_{structure_str}_{adsorbate_str}_diff_calc.txt',
         **hubberd_U_dict,
-        **convergence
+        **convergence,
+        **eigensolver_kwargs
     )
 
     if dftd4_bool: calc = SumCalculator([DFTD4(method=functional), GPAW(**calc_par_dict)])
@@ -161,6 +165,7 @@ if __name__ == '__main__':
     parser.add_argument('-mix', '--mixer', choices=['full', 'fFF', 'fb', 'diff'], default='full')
 #    parser.add_argument('-mag', '--set_mag', nargs=2, action=IntStr_Parser, metavar=('data_base_id', 'database'))
     parser.add_argument('-mag', '--set_mag',)
+    parser.add_argument('-eig', '--eigensolver', choices=['rmm', 'dav', 'cg'], default=None)
     args = parser.parse_args()
 
-    main(args.data_base_id, args.database, fmax=args.fmax, restart=args.restart, beta=args.beta, maxold=args.maxold, weight=args.weight, diff_convergence=args.diff_con, mixer=args.mixer, set_mag=args.set_mag)
+    main(args.data_base_id, args.database, fmax=args.fmax, restart=args.restart, beta=args.beta, maxold=args.maxold, weight=args.weight, diff_convergence=args.diff_con, mixer=args.mixer, set_mag=args.set_mag, eigensolver=args.eigensolver)
