@@ -20,7 +20,7 @@ def main(atoms_dir: str, exclude_atoms: list[int], output: str):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('file', type=int)
+    parser.add_argument('file')
     parser.add_argument('exclude_atoms', nargs='+', type=int)
     parser.add_argument('output')
     args = parser.parse_args()
