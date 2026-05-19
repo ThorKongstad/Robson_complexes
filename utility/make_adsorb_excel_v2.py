@@ -170,7 +170,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('db_directory', help='Path to the database')
     parser.add_argument('--verbose', action='store_true')
-    parser.add_argument('--o','--output_directory',help='Path to the output directory')
+    parser.add_argument('-o','--output_directory',help='Path to the output directory')
     args = parser.parse_args()
 
     main(args.db_directory,  args.verbose, args.output_directory)
