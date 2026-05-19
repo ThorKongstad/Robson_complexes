@@ -3,9 +3,10 @@ import sys
 import pathlib
 from copy import copy
 import traceback
+from typing import Optional
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent))
-from Robson_complexes import sanitize, folder_exist, build_pd
+from Robson_complexes import sanitize, folder_exist, build_pd, ends_with
 
 import pandas as pd
 import openpyxl as xl
@@ -110,7 +111,7 @@ def match_adsorbate(adsorbate: str, pd_data, struc: str, charge: str, attribute:
             if verbose: print(f'Adsorbate: {adsorbate} didnt match any of the cases')
 
 
-def main(db_directory: str, verbose: bool):
+def main(db_directory: str, verbose: bool, output_directory: Optional[str] = None) -> None:
     pd_data = build_pd(db_directory)
 
     unique_catalysts = {struc for _, row in pd_data.iterrows() if not pd.isna((struc := row.get('structure_str')))}
@@ -158,13 +159,18 @@ def main(db_directory: str, verbose: bool):
                             if verbose: traceback.print_exc()
                     current_line += 1
             for cell_nr in range(1, 12): working_sheet.cell(row=current_line, column=cell_nr).border = upper_border
-    excel_file.save('rmc_adsorp_dat.xlsx')
+    if output_directory:
+        excel_file.save(ends_with(output_directory, '.xlsx'))
+    else:
+        excel_file.save('rmc_adsorp_dat.xlsx')
+
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('db_directory', help='Path to the database')
     parser.add_argument('--verbose', action='store_true')
+    parser.add_argument('--o','output_directory',help='Path to the output directory')
     args = parser.parse_args()
 
-    main(args.db_directory,  args.verbose)
+    main(args.db_directory,  args.verbose, args.output_directory)
