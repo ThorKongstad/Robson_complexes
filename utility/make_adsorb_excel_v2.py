@@ -53,7 +53,7 @@ O2 = dict(
 
 def fill_gas_page(sheet):
     sheet.cell(2, 1, 'H2')
-    sheet.cell(2, 2, G_h2o)
+    sheet.cell(2, 2, G_h2)
 
     sheet.cell(3, 1, 'H20')
     sheet.cell(3, 2, G_h2o)
