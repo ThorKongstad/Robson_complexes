@@ -17,9 +17,7 @@ import ase.db as db
 from ase.calculators.mixing import SumCalculator
 from ase.parallel import parprint, world, barrier
 from ase import Atoms
-from gpaw import GPAW, PW, Davidson
-from gpaw.utilities import h2gpts
-from dftd4.ase import DFTD4
+#from dftd4.ase import DFTD4
 
 from pyscf.pcb.tools.pyscf_ase import PySCF
 
