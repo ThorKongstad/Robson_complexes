@@ -3,7 +3,7 @@ import sys
 import pathlib
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent))
-from scripts_for_adsorbate_database import ends_with, sanitize
+from Robson_complexes import ends_with, sanitize
 
 from typing import Optional
 
@@ -37,11 +37,11 @@ if __name__ == '__main__':
     parser.add_argument('struc_traj')
     parser.add_argument('struc_str')
     parser.add_argument('functional',help='str denoting what functional to calculate with')
-    parser.add_argument('basis',help='str denoting what basis to calculate with', default='gth-tzvp')
-    parser.add_argument('db',help='name or directory for the database.')
+    parser.add_argument('basis', help='str denoting what basis to calculate with', default='gth-tzvp')
+    parser.add_argument('db', help='name or directory for the database.')
     parser.add_argument('--adsorbate_str', '-ad')
     parser.add_argument('--charge', '-c', default=0, type=float)
-    parser.add_argument('--spinpol', '-s',)
+    parser.add_argument('--spinpol', '-s', type=float, default=0)
     parser.add_argument('--dftd4', '-d4', action='store_true')
 
     args = parser.parse_args()
