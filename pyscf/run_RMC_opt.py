@@ -19,7 +19,7 @@ from ase.parallel import parprint, world, barrier
 from ase import Atoms
 #from dftd4.ase import DFTD4
 
-from pyscf.pcb.tools.pyscf_ase import PySCF
+from pyscf.pbc.tools.pyscf_ase import PySCF
 
 
 def optimiser_observer(atoms: Atoms, db_dir: str, db_id: int, goals: list[float]) -> None:
