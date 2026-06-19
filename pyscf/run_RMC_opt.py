@@ -1,6 +1,6 @@
-#partition=main
+#partition=power
 #nprocshared=32
-#mem=4000MB
+#mem=2800MB
 
 import argparse
 import os
