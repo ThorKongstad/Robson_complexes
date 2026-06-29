@@ -29,7 +29,7 @@ def main(traj_structure: str, structure_str: str, functional_str: str, basis_str
     calc_pickle = str(pickle.dumps(calc_par_dict))
 
     with db.connect(db_dir) as db_obj:
-        db_obj.write(atoms=atoms, xc=functional_str, structure_str=structure_str, adsorbate_str=(adsorbate_str if adsorbate_str is not None else 'None'), relaxed=False, vibration=False, pyscf_charge=charge, dftd4=dftd4_bool, data=dict(dft_calc_pickle=calc_pickle))
+        db_obj.write(atoms=atoms, xc=functional_str, basis=basis_str, structure_str=structure_str, adsorbate_str=(adsorbate_str if adsorbate_str is not None else 'None'), relaxed=False, vibration=False, pyscf_charge=charge, dftd4=dftd4_bool, data=dict(dft_calc_pickle=calc_pickle))
 
 
 if __name__ == '__main__':

@@ -19,7 +19,8 @@ from ase.parallel import parprint, world, barrier
 from ase import Atoms
 #from dftd4.ase import DFTD4
 
-from pyscf.pbc.tools.pyscf_ase import PySCF
+from pyscf.pbc import dft, gto
+from pyscf.pbc.tools.pyscf_ase import PySCF, cell_from_ase, ase_atoms_to_pyscf
 
 
 def optimiser_observer(atoms: Atoms, db_dir: str, db_id: int, goals: list[float]) -> None:
@@ -37,6 +38,7 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False):
         row = db_obj.get(selection=f'id={db_id}')
         atoms: Atoms = row.toatoms()
         functional = row.get('xc')
+        basis_set = row.get('basis')
         structure_str = row.get('structure_str')
         adsorbate_str = row.get('adsorbate_str')
         dftd4_bool = row.get('dftd4')
@@ -45,13 +47,28 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False):
 
     parprint(f'outstd of opt calculation for db entry {db_id} with structure: {structure_str}, adsorbate: {adsorbate_str} and functional: {functional}')
 
-    functional_folder = sanitize(functional) + ('_D4' if dftd4_bool else '')
+    functional_folder = sanitize(functional) + ('_D4' if dftd4_bool else '') + sanitize(basis_set)
     if world.rank == 0: folder_exist(functional_folder)
 
     dft_calc_dict = pickle.loads(dft_calc_pickle)
 
     dft_calc_dict['txt'] = f'{functional_folder}/opt_id{db_id}_{structure_str}_{adsorbate_str}.txt'
-    calc = PySCF(**dft_calc_dict)
+
+    pyscf_cell = cell_from_ase(atoms)
+    pyscf_cell.basis = dft_calc_dict['basis']
+    pyscf_cell.spin = dft_calc_dict['spin']
+    pyscf_cell.verbose = 4
+    pyscf_cell.ouput = dft_calc_dict['txt']
+    pyscf_cell.build()
+
+    method = dft.UKS(pyscf_cell,
+                     xc=functional,
+                     chkfile=None,
+                     )
+
+    calc = PySCF(atoms=atoms,
+                 method=method,)
+
     atoms.set_calculator(calc)
 
     if isinstance(fmax, float) or isinstance(fmax, int): fmax = [fmax]
