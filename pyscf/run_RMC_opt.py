@@ -47,7 +47,7 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False):
 
     parprint(f'outstd of opt calculation for db entry {db_id} with structure: {structure_str}, adsorbate: {adsorbate_str} and functional: {functional}')
 
-    functional_folder = sanitize(functional) + ('_D4' if dftd4_bool else '') + sanitize(basis_set)
+    functional_folder = sanitize(functional) + ('_D4' if dftd4_bool else '') + '_' + sanitize(basis_set)
     if world.rank == 0: folder_exist(functional_folder)
 
     dft_calc_dict = pickle.loads(dft_calc_pickle)
