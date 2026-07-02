@@ -24,7 +24,7 @@ from gpaw.utilities import h2gpts
 from dftd4.ase import DFTD4
 
 
-def main(db_id: int, db_dir: str):
+def main(db_id: int, db_dir: str, unrestrict: bool = False):
 
     # read from  database
     if not os.path.basename(db_dir) in os.listdir(db_path if len(db_path := os.path.dirname(db_dir))>0 else '.'): raise FileNotFoundError("Can't find database")
@@ -52,17 +52,21 @@ def main(db_id: int, db_dir: str):
     else: calc = GPAW(**pickle.loads(dft_calc_pickle))
     atoms.set_calculator(calc)
 
-    metal_symbol = ['Co','Fe']
-    metal_at, not_metal_at = [], []
-    for i, at in enumerate(atoms):
-        if at.symbol in metal_symbol: metal_at.append(i)
-        else: not_metal_at.append(i)
-    metal_z_pos = list(pos[2] for pos in atoms[metal_at].get_positions())
-    avg_metal_z_pos = np.mean(metal_z_pos)
-    atoms_for_vib = list(filter(lambda i: (atoms[i].position[2] > (avg_metal_z_pos + 0.4)) or atoms[i].symbol in metal_symbol, list(range(len(atoms)))))
-    locked_metals = list(filter(lambda i: (atoms[i].position[2] < (avg_metal_z_pos + 0.4)) and atoms[i].symbol not in metal_symbol, list(range(len(atoms)))))
+    if not unrestrict:
+        metal_symbol = ['Co','Fe']
+        metal_at, not_metal_at = [], []
+        for i, at in enumerate(atoms):
+            if at.symbol in metal_symbol: metal_at.append(i)
+            else: not_metal_at.append(i)
+        metal_z_pos = list(pos[2] for pos in atoms[metal_at].get_positions())
+        avg_metal_z_pos = np.mean(metal_z_pos)
+        atoms_for_vib = list(filter(lambda i: (atoms[i].position[2] > (avg_metal_z_pos + 0.4)) or atoms[i].symbol in metal_symbol, list(range(len(atoms)))))
+        locked_metals = list(filter(lambda i: (atoms[i].position[2] < (avg_metal_z_pos + 0.4)) and atoms[i].symbol not in metal_symbol, list(range(len(atoms)))))
 
-    atoms.set_constraint(constraint=FixAtoms(locked_metals))
+        atoms.set_constraint(constraint=FixAtoms(locked_metals))
+    else:
+        atoms_for_vib = list(range(len(atoms)))
+
     atoms.get_forces()# fix incase it cant read forces, need to figure out a test for it. possible try TypeError or if self._cache['forces'] == None
 
     vib = Vibrations(atoms, indices=atoms_for_vib, name=f'{functional_folder}/{file_name}')
@@ -86,6 +90,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('data_base_id', type=int)
     parser.add_argument('database', help='directory to the database.')
+    parser.add_argument('--full', action='store_true')
     args = parser.parse_args()
 
-    main(args.data_base_id, args.database)
+    main(args.data_base_id, args.database, unrestrict=args.full)
