@@ -29,7 +29,7 @@ def main(db_id: int, db_dir: str = 'molreact.db'):
         row = db_obj.get(selection=f'id={db_id}')
         if not row.get('relaxed'): raise ValueError(f"atoms at row id: {db_id} haven't been relaxed.")
         functional = row.get('xc')
-        if functional not in ('BEEF-vdW', "{'name':'BEEF-vdW','backend':'libvdwxc'}"): raise ValueError(f'row {db_id}, is not a bee functional')
+#        if functional not in ('BEEF-vdW', "{'name':'BEEF-vdW','backend':'libvdwxc'}"): raise ValueError(f'row {db_id}, is not a bee functional')
         atoms = row.toatoms()
         functional = row.get('xc')
         structure_str = row.get('structure_str')
@@ -68,7 +68,7 @@ def main(db_id: int, db_dir: str = 'molreact.db'):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('data_base_id', type=int)
-    parser.add_argument('-db', '--database', help='directory to the database, if not stated will look for molreact.db in pwd.', default='molreact.db')
+    parser.add_argument('database', help='directory to the database.')
     args = parser.parse_args()
 
     main(args.data_base_id, args.database)
