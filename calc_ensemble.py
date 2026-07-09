@@ -7,6 +7,7 @@ import os
 import sys
 import pathlib
 import pickle
+import gc
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
 from Robson_complexes import sanitize, folder_exist, update_db
@@ -21,6 +22,7 @@ from dftd4.ase import DFTD4
 
 
 def main(db_id: int, db_dir: str = 'molreact.db'):
+    gc.disable()
 
     # read from  database
     #atoms = read(f'/groups/kemi/thorkong/errors_investigation/molreact.db@id={db_id}')
@@ -43,8 +45,6 @@ def main(db_id: int, db_dir: str = 'molreact.db'):
 
     functional_folder = sanitize(functional)
     if world.rank == 0: folder_exist(functional_folder)
-
-    if '{' in functional[0] and '}' in functional[-1] and ':' in functional: functional = eval(functional)
 
     barrier()
     dft_calc_dict = pickle.loads(dft_calc_pickle)
