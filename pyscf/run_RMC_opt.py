@@ -63,8 +63,8 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False):
 
     method = dft.UKS(pyscf_cell,
                      xc=functional,
-                     chkfile=None,
                      )
+    method.chkfile = None
 
     calc = PySCF(atoms=atoms,
                  method=method,)
