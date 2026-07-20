@@ -10,6 +10,7 @@ import pickle
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent))
 from Robson_complexes import sanitize, folder_exist, update_db
+from Robson_complexes.code_pyscf import parse_script_header
 
 import numpy as np
 from ase.optimize import GPMin, BFGS
@@ -31,7 +32,6 @@ def optimiser_observer(atoms: Atoms, db_dir: str, db_id: int, goals: list[float]
 
 
 def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False):
-
     # read from  database
     if not os.path.basename(db_dir) in os.listdir(db_path if len(db_path := os.path.dirname(db_dir))>0 else '.'): raise FileNotFoundError("Can't find database")
     with db.connect(db_dir) as db_obj:
@@ -59,6 +59,10 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False):
     pyscf_cell.spin = dft_calc_dict['spin']
     pyscf_cell.verbose = 4
     pyscf_cell.ouput = dft_calc_dict['txt']
+
+    nprocs, mem_per_cpu = parse_script_header(os.path.abspath(__file__))
+    pyscf_cell.max_memory = int(nprocs * mem_per_cpu * 0.85)
+    
     pyscf_cell.build()
 
     method = dft.UKS(pyscf_cell,
