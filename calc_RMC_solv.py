@@ -1,4 +1,4 @@
-#partition=main
+#partition=power
 #nprocshared=32
 #mem=4000MB
 
@@ -76,7 +76,7 @@ def main(db_id: int, db_dir: str, fd_bool: bool = False):
         dielectric=LinearDielectric(epsinf=78.36),
         interactions=[SurfaceInteraction(surface_tension=18.4*1e-3*Pascal*m)],
         **dft_calc_dict)
-    atoms.set_calculator(calc)
+    atoms.calc = calc
 
     solvated_energy = atoms.get_potential_energy()
 

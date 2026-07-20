@@ -1,4 +1,4 @@
-#partition=main
+#partition=power
 #nprocshared=16
 #mem=4000MB
 
@@ -54,7 +54,7 @@ def main(db_id: int, db_dir: str = 'molreact.db'):
 #        calc = SumCalculator([DFTD4(method=functional), GPAW(**dft_calc_dict)])
 #    else:
     calc = GPAW(**dft_calc_dict)
-    atoms.set_calculator(calc)
+    atoms.calc = calc
 
     potential_e = atoms.get_potential_energy()
     ens = BEEFEnsemble(atoms)

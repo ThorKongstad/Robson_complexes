@@ -1,4 +1,4 @@
-#partition=main
+#partition=power
 #nprocshared=32
 #mem=4000MB
 
@@ -50,7 +50,7 @@ def main(db_id: int, db_dir: str, unrestrict: bool = False):
     dft_calc_dict['txt'] = f'{functional_folder}/{file_name}.txt'
     if dftd4_bool: calc = SumCalculator([DFTD4(method=functional), GPAW(**dft_calc_dict)])
     else: calc = GPAW(**pickle.loads(dft_calc_pickle))
-    atoms.set_calculator(calc)
+    atoms.calc = calc
 
     if not unrestrict:
         metal_symbol = ['Co','Fe']
