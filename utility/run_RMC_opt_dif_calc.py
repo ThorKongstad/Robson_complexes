@@ -81,6 +81,7 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False, beta
             BroydenMixerFull = _definemixerfunc('fullspin', 'broyden')
             mixer = BroydenMixerFull(beta=beta, nmaxold=maxold, weight=weight)
         case 'diff': mixer = MixerDif(beta=beta, nmaxold=maxold, weight=weight, beta_m=beta, nmaxold_m=1)
+        case 'msr1': mixer = dict(backend='msri', nmaxold=maxold, beta=beta)
         case _: raise NotImplementedError('Could not understand mixer')
 
     match eigensolver:
@@ -162,7 +163,7 @@ if __name__ == '__main__':
     parser.add_argument('--maxold','-mo', default=5, type=int)
     parser.add_argument('--weight', '-w', default=50, type=float)
     parser.add_argument('--diff_con', '-dc', default=False, action='store_true')
-    parser.add_argument('-mix', '--mixer', choices=['full', 'fFF', 'fb', 'diff'], default='full')
+    parser.add_argument('-mix', '--mixer', choices=['full', 'fFF', 'fb', 'diff', 'msr1'], default='full')
 #    parser.add_argument('-mag', '--set_mag', nargs=2, action=IntStr_Parser, metavar=('data_base_id', 'database'))
     parser.add_argument('-mag', '--set_mag',)
     parser.add_argument('-eig', '--eigensolver', choices=['rmm', 'dav', 'cg'], default=None)
