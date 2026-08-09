@@ -42,7 +42,7 @@ def get_mag_moments_db(id: int, db_dir: str):
 
 
 def get_mag_moments_txt(txt_dir: str):
-    atoms = read(txt_dir,index=-1)
+    atoms = read(txt_dir, index=-1)
     return atoms.get_magnetic_moments()
 
 
@@ -81,7 +81,7 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False, beta
             BroydenMixerFull = _definemixerfunc('fullspin', 'broyden')
             mixer = BroydenMixerFull(beta=beta, nmaxold=maxold, weight=weight)
         case 'diff': mixer = MixerDif(beta=beta, nmaxold=maxold, weight=weight, beta_m=beta, nmaxold_m=1)
-        case 'msr1': mixer = dict(backend='msri', nmaxold=maxold, beta=beta)
+        case 'msr1': mixer = dict(backend='msr1', nmaxold=maxold, beta=beta)
         case _: raise NotImplementedError('Could not understand mixer')
 
     match eigensolver:
