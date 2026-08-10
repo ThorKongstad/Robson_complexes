@@ -1,4 +1,4 @@
-#partition=main
+#partition=power
 #nprocshared=32
 #mem=4000MB
 
@@ -7,6 +7,7 @@ import os
 import sys
 import pathlib
 import pickle
+from typing import Optional
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent))
 from Robson_complexes import sanitize, folder_exist, update_db
@@ -22,6 +23,7 @@ from ase.vibrations import Vibrations
 from ase.thermochemistry import HarmonicThermo
 from gpaw import GPAW, PW, Davidson
 from gpaw import FermiDirac, PoissonSolver, Mixer, MixerFull
+from gpaw.mixer import FFTMixerFull, MixerDif, _definemixerfunc
 from gpaw.utilities import h2gpts
 from gpaw.convergence_criteria import Density
 from dftd4.ase import DFTD4
@@ -34,7 +36,7 @@ def optimiser_observer(atoms: Atoms, db_dir: str, db_id: int, goals: list[float]
         if world.rank == 0: update_db(db_dir, dict(id=db_id, atoms=atoms.copy(), relaxed=True, vibration=False, vib_en=False))
 
 
-def main(db_id: int, db_dir: str, beta=0.05, maxold=5, weight=50, reset_spin: bool = False, diff_convergence: bool = False) -> None:
+def main(db_id: int, db_dir: str, beta=0.05, maxold=5, weight=50, reset_spin: bool = False, diff_convergence: bool = False, mixer: str = 'full', eigensolver: Optional[str]=None) -> None:
 
     # read from  database
     if not os.path.basename(db_dir) in os.listdir(db_path if len(db_path := os.path.dirname(db_dir))>0 else '.'): raise FileNotFoundError("Can't find database")
@@ -67,6 +69,22 @@ def main(db_id: int, db_dir: str, beta=0.05, maxold=5, weight=50, reset_spin: bo
     if diff_convergence: convergence = {'convergence': {'density': Density(0.0005)}}
     else: convergence = {}
 
+    match mixer:
+        case 'full': mixer = MixerFull(beta=beta, nmaxold=maxold, weight=weight)
+        case 'fFF': mixer = FFTMixerFull(beta=beta, nmaxold=maxold, weight=weight)
+        case 'fb':
+            BroydenMixerFull = _definemixerfunc('fullspin', 'broyden')
+            mixer = BroydenMixerFull(beta=beta, nmaxold=maxold, weight=weight)
+        case 'diff': mixer = MixerDif(beta=beta, nmaxold=maxold, weight=weight, beta_m=beta, nmaxold_m=1)
+        case 'msr1': mixer = dict(backend='msr1', nmaxold=maxold, beta=beta)
+        case _: raise NotImplementedError('Could not understand mixer')
+
+    match eigensolver:
+        case 'rmm': eigensolver_kwargs = dict(eigensolver=dict(name='rmm-diis'))
+        case 'dav': eigensolver_kwargs = dict(eigensolver=Davidson(3))
+        case 'cg': eigensolver_kwargs = dict(eigensolver=dict(name='cg'))
+        case _: eigensolver_kwargs = dict()
+
     calc_par_dict = dict(
         xc=functional,
         basis='dzp',
@@ -74,12 +92,13 @@ def main(db_id: int, db_dir: str, beta=0.05, maxold=5, weight=50, reset_spin: bo
         gpts=h2gpts(grid_spacing, atoms.get_cell(), idiv=4),
         parallel={'augment_grids': True, 'sl_auto': True},
         spinpol=charge != 0, # or spinpol,
-        mixer=MixerFull(beta=beta, nmaxold=maxold, weight=weight),
+        mixer=mixer,#MixerFull(beta=beta, nmaxold=maxold, weight=weight),
         charge=charge,
         txt=f'{functional_folder}/{file_name}.txt',
         symmetry='off',
         **hubberd_U_dict,
-        **convergence
+        **convergence,
+        **eigensolver_kwargs
     )
 
     if dftd4_bool: calc = SumCalculator([DFTD4(method=functional), GPAW(**calc_par_dict)])
@@ -125,6 +144,9 @@ if __name__ == '__main__':
     parser.add_argument('--weight', '-w', default=50, type=float)
     parser.add_argument('--reset_spin', '-r', default=False, action='store_true')
     parser.add_argument('--diff_con', '-dc', default=False, action='store_true')
+    parser.add_argument('-mix', '--mixer', choices=['full', 'fFF', 'fb', 'diff', 'msr1'], default='full')
+    parser.add_argument('-eig', '--eigensolver', choices=['rmm', 'dav', 'cg'], default=None)
+
     args = parser.parse_args()
 
-    main(args.data_base_id, args.database, beta=args.beta, maxold=args.maxold, weight=args.weight, reset_spin=args.reset_spin, diff_convergence=args.diff_con)
+    main(args.data_base_id, args.database, beta=args.beta, maxold=args.maxold, weight=args.weight, reset_spin=args.reset_spin, diff_convergence=args.diff_con, mixer=args.mixer, eigensolver=args.eigensolver)

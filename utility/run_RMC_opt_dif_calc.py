@@ -1,4 +1,4 @@
-#partition=main
+#partition=power
 #nprocshared=32
 #mem=4000MB
 
@@ -85,7 +85,7 @@ def main(db_id: int, db_dir: str, fmax: float = 0.3, restart: bool = False, beta
         case _: raise NotImplementedError('Could not understand mixer')
 
     match eigensolver:
-        case 'rmm': eigensolver_kwargs = dict(eigensolver=dict(name='emm-diis'))
+        case 'rmm': eigensolver_kwargs = dict(eigensolver=dict(name='rmm-diis'))
         case 'dav': eigensolver_kwargs = dict(eigensolver=Davidson(3))
         case 'cg': eigensolver_kwargs = dict(eigensolver=dict(name='cg'))
         case _: eigensolver_kwargs = dict()
