@@ -72,8 +72,21 @@ def main(db_id: int, db_dir: str, unrestrict: bool = False, ideal: True = False)
     vib = Vibrations(atoms, indices=atoms_for_vib, name=f'{functional_folder}/{file_name}')
     vib.run()
 
-    if ideal: thermo = IdealGasThermo(vib.get_energies(), potentialenergy=atoms.get_potential_energy(), geometry=ideal, atoms=atoms, ignore_imag_modes=True)
-    else: thermo = HarmonicThermo(vib.get_energies(), atoms.get_potential_energy(), ignore_imag_modes=True)
+    vib_energies = vib.get_energies()
+    if ideal:
+        num_vibrating_atoms = len(atoms_for_vib)
+        match ideal:
+            case 'linear': n_modes = 3 * num_vibrating_atoms - 5
+            case 'nonlinear': n_modes = 3 * num_vibrating_atoms - 6
+            case 'monatomic': n_modes = 0
+            case _: n_modes = len(vib_energies)
+        n_modes = max(0, n_modes)
+
+        sorted_energies = np.sort(vib_energies)
+        filtered_vib_energies = sorted_energies[-n_modes:] if n_modes > 0 else np.array([])
+
+        thermo = IdealGasThermo(filtered_vib_energies, potentialenergy=atoms.get_potential_energy(), geometry=ideal, atoms=atoms, ignore_imag_modes=True)
+    else: thermo = HarmonicThermo(vib_energies, atoms.get_potential_energy(), ignore_imag_modes=True)
 
     if world.rank == 0:
         vib.summary(log=f'{functional_folder}/{file_name.replace("vib", "vib_en")}')
