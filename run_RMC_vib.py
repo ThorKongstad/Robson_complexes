@@ -94,10 +94,23 @@ def main(db_id: int, db_dir: str, unrestrict: bool = False, ideal: True = False)
         with open(f'{functional_folder}/{file_name.replace("vib", "vib_en")}', 'r') as fil:
             energy_string = fil.read()
 
+        # 1. Handle Enthalpy / Internal Energy discrepancy safely
+        if hasattr(thermo, 'get_internal_energy'):
+            internal_E = thermo.get_internal_energy(300)
+        else:
+            internal_E = thermo.get_enthalpy(300)
+
+        # 2. Handle Free Energy discrepancy safely (Helmholtz vs Gibbs)
+        if hasattr(thermo, 'get_helmholtz_energy'):
+            free_energy = thermo.get_helmholtz_energy(300)
+        else:
+            # Ideal gas requires temperature and pressure (101325 Pa = 1 atm/bar standard)
+            free_energy = thermo.get_gibbs_energy(temperature=300, pressure=101325.0)
+
         # saving vib data
         update_db(db_dir, dict(id=db_id, vibration=True, zpe=thermo.get_ZPE_correction(), vib_en=energy_string,
-                               enthalpy=thermo.get_internal_energy(300), entropy=thermo.get_entropy(300),
-                               free_E=thermo.get_helmholtz_energy(300)))
+                               enthalpy=internal_E, entropy=thermo.get_entropy(300),
+                               free_E=free_energy))
 
 
 if __name__ == '__main__':
