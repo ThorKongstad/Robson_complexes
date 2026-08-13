@@ -108,4 +108,4 @@ if __name__ == '__main__':
     parser.add_argument('--ideal', default=False, choices=['linear', 'nonlinear', 'monatomic'])
     args = parser.parse_args()
 
-    main(args.data_base_id, args.database, unrestrict=args.full)
+    main(args.data_base_id, args.database, unrestrict=args.full, ideal=args.ideal)
