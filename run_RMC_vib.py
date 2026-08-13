@@ -13,7 +13,7 @@ from Robson_complexes import sanitize, folder_exist, update_db
 
 import numpy as np
 from ase.vibrations import Vibrations
-from ase.thermochemistry import HarmonicThermo
+from ase.thermochemistry import HarmonicThermo, IdealGasThermo
 from ase.constraints import FixAtoms
 import ase.db as db
 from ase.calculators.mixing import SumCalculator
@@ -24,7 +24,7 @@ from gpaw.utilities import h2gpts
 from dftd4.ase import DFTD4
 
 
-def main(db_id: int, db_dir: str, unrestrict: bool = False):
+def main(db_id: int, db_dir: str, unrestrict: bool = False, ideal: True = False):
 
     # read from  database
     if not os.path.basename(db_dir) in os.listdir(db_path if len(db_path := os.path.dirname(db_dir))>0 else '.'): raise FileNotFoundError("Can't find database")
@@ -72,7 +72,8 @@ def main(db_id: int, db_dir: str, unrestrict: bool = False):
     vib = Vibrations(atoms, indices=atoms_for_vib, name=f'{functional_folder}/{file_name}')
     vib.run()
 
-    thermo = HarmonicThermo(vib.get_energies(), atoms.get_potential_energy(), ignore_imag_modes=True)
+    if ideal: thermo = IdealGasThermo(vib.get_energies(), potentialenergy=atoms.get_potential_energy(), geometry=ideal, atoms=atoms, ignore_imag_modes=True)
+    else: thermo = HarmonicThermo(vib.get_energies(), atoms.get_potential_energy(), ignore_imag_modes=True)
 
     if world.rank == 0:
         vib.summary(log=f'{functional_folder}/{file_name.replace("vib", "vib_en")}')
@@ -91,6 +92,7 @@ if __name__ == '__main__':
     parser.add_argument('data_base_id', type=int)
     parser.add_argument('database', help='directory to the database.')
     parser.add_argument('--full', action='store_true')
+    parser.add_argument('--ideal', default=False, choices=['linear', 'nonlinear', 'monatomic'])
     args = parser.parse_args()
 
     main(args.data_base_id, args.database, unrestrict=args.full)
