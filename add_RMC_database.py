@@ -9,11 +9,12 @@ from ase import Atoms
 import ase.db as db
 import pickle
 
-from gpaw import FermiDirac, PoissonSolver, Mixer, MixerFull
+from gpaw import FermiDirac, PoissonSolver, Mixer, MixerFull, Davidson
+from gpaw.mixer import FFTMixerFull, MixerDif, _definemixerfunc
 from gpaw.utilities import h2gpts
 
 
-def main(traj_structure: str, structure_str: str, functional_str: str,  db_dir: str, grid_spacing: float = 0.16, charge: float = 0, spinpol: bool = False, adsorbate_str: Optional[str] = None, dftd4_bool: bool = False, hubberd_U: bool = False, reset_spin: bool = False):
+def main(traj_structure: str, structure_str: str, functional_str: str,  db_dir: str, grid_spacing: float = 0.16, charge: float = 0, spinpol: bool = False, adsorbate_str: Optional[str] = None, dftd4_bool: bool = False, hubberd_U: bool = False, reset_spin: bool = False, mixer: str = 'full', eigensolver: Optional[str] = None, beta=0.05, maxold=5, weight=50):
     atoms: Atoms = read(traj_structure)
 
     if reset_spin:
@@ -25,6 +26,23 @@ def main(traj_structure: str, structure_str: str, functional_str: str,  db_dir: 
 #    if charge != 0:
 #        atoms.set_initial_charges()
 
+    match mixer:
+        case 'full': mixer = MixerFull(beta=beta, nmaxold=maxold, weight=weight)
+        case 'fFF': mixer = FFTMixerFull(beta=beta, nmaxold=maxold, weight=weight)
+        case 'fb':
+            BroydenMixerFull = _definemixerfunc('fullspin', 'broyden')
+            mixer = BroydenMixerFull(beta=beta, nmaxold=maxold, weight=weight)
+        case 'diff': mixer = MixerDif(beta=beta, nmaxold=maxold, weight=weight, beta_m=beta, nmaxold_m=1)
+        case 'msr1': mixer = dict(backend='msr1', nmaxold=maxold, beta=beta)
+        case _: raise NotImplementedError('Could not understand mixer')
+
+    match eigensolver:
+        case 'rmm': eigensolver_kwargs = dict(eigensolver=dict(name='rmm-diis'))
+        case 'dav': eigensolver_kwargs = dict(eigensolver=Davidson(3))
+        case 'cg': eigensolver_kwargs = dict(eigensolver=dict(name='cg'))
+        case _: eigensolver_kwargs = dict()
+
+
     hubberd_U_dict = dict(setups={'O': ':p,8.9,0', 'N': ':p,6.0,0', 'Fe': ':d,4.1,0', 'Co': ':d,4.4,0'}) if hubberd_U else {}
 
     calc_par_dict = dict(
@@ -34,10 +52,11 @@ def main(traj_structure: str, structure_str: str, functional_str: str,  db_dir: 
         gpts=h2gpts(grid_spacing, atoms.get_cell(), idiv=4),
         parallel={'augment_grids': True, 'sl_auto': True},
         spinpol=charge != 0 or spinpol,
-        mixer=MixerFull(beta=0.05, nmaxold=5, weight=50),
+        mixer=mixer,
         charge=charge,
         txt=f'{functional_str}/{structure_str}_{adsorbate_str}'+'.txt',
-        **hubberd_U_dict
+        **hubberd_U_dict,
+        **eigensolver_kwargs
     )
 
     calc_pickle = str(pickle.dumps(calc_par_dict))
@@ -59,6 +78,11 @@ if __name__ == '__main__':
     parser.add_argument('--dftd4', '-d4', action='store_true')
     parser.add_argument('--hubberd_U', '-HU', action='store_true')
     parser.add_argument('--reset_spin', '-rs', action='store_true')
+    parser.add_argument('-eig', '--eigensolver', choices=['rmm', 'dav', 'cg'], default=None)
+    parser.add_argument('-mix', '--mixer', choices=['full', 'fFF', 'fb', 'diff', 'msr1'], default='full')
+    parser.add_argument('--beta', '-b', default=0.05, type=float)
+    parser.add_argument('--maxold','-mo', default=5, type=int)
+    parser.add_argument('--weight', '-w', default=50, type=float)
     args = parser.parse_args()
 
     main(traj_structure=args.struc_traj,
@@ -71,4 +95,7 @@ if __name__ == '__main__':
          spinpol=args.spinpol,
          dftd4_bool=args.dftd4,
          hubberd_U=args.hubberd_U,
-         reset_spin=args.reset_spin)
+         reset_spin=args.reset_spin,
+         beta=args.beta, maxold=args.maxold, weight=args.weight,
+         mixer=args.mixer,
+         eigensolver=args.eigensolver)
