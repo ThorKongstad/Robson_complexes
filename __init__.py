@@ -67,7 +67,7 @@ def folder_exist(folder_name: str, path: str = '.') -> None:
 
 
 def ends_with(string: str, end_str: str) -> str:
-    return string + end_str * (end_str != string[-len(end_str):0])
+    return string + end_str * (end_str != string[-len(end_str):])
 
 
 def overpotential(dG_OOH: float, dG_OH: float, dG_O: float) -> float: return min((4.92 - dG_OOH, dG_OOH - dG_O, dG_O - dG_OH, dG_OH)) # 1.23 -
