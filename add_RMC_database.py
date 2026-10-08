@@ -14,7 +14,7 @@ from gpaw.mixer import FFTMixerFull, MixerDif, _definemixerfunc
 from gpaw.utilities import h2gpts
 
 
-def main(traj_structure: str, structure_str: str, functional_str: str,  db_dir: str, grid_spacing: float = 0.16, charge: float = 0, spinpol: bool = False, adsorbate_str: Optional[str] = None, dftd4_bool: bool = False, hubberd_U: bool = False, reset_spin: bool = False, mixer: str = 'full', eigensolver: Optional[str] = None, beta=0.05, maxold=5, weight=50):
+def main(traj_structure: str, structure_str: str, functional_str: str,  db_dir: str, grid_spacing: float = 0.16, charge: float = 0, spinpol: bool = False, adsorbate_str: Optional[str] = None, dftd4_bool: bool = False, hubberd_U: bool = False, reset_spin: bool = False, mixer: str = 'full', eigensolver: Optional[str] = None, beta=0.05, maxold=5, weight=50, xc_backend = None):
     atoms: Atoms = read(traj_structure)
 
     if reset_spin:
@@ -45,8 +45,11 @@ def main(traj_structure: str, structure_str: str, functional_str: str,  db_dir: 
 
     hubberd_U_dict = dict(setups={'O': ':p,8.9,0', 'N': ':p,6.0,0', 'Fe': ':d,4.1,0', 'Co': ':d,4.4,0'}) if hubberd_U else {}
 
+    if xc_backend is not None: xc = dict(xc=functional_str, backend=xc_backend)
+    else: xc = functional_str
+
     calc_par_dict = dict(
-        xc=functional_str,
+        xc=xc,
         basis='dzp',
         mode={'name': 'pw', 'ecut': 500, 'force_complex_dtype': True},
         gpts=h2gpts(grid_spacing, atoms.get_cell(), idiv=4),
@@ -72,6 +75,7 @@ if __name__ == '__main__':
     parser.add_argument('functional',help='str denoting what functional to calculate with')
     parser.add_argument('db',help='name or directory for the database.')
     parser.add_argument('--adsorbate_str', '-ad')
+    parser.add_argument('--xc_backend', type=str, default=None)
     parser.add_argument('--grid_spacing', '-g', type=float, default=0.16)
     parser.add_argument('--charge', '-c', default=0, type=float)
     parser.add_argument('--spinpol', '-s', action='store_true', help='sets spinpol to be true, spinpol will always be true if charge != 0')
@@ -98,4 +102,5 @@ if __name__ == '__main__':
          reset_spin=args.reset_spin,
          beta=args.beta, maxold=args.maxold, weight=args.weight,
          mixer=args.mixer,
-         eigensolver=args.eigensolver)
+         eigensolver=args.eigensolver,
+         xc_backend=args.xc_backend,)
