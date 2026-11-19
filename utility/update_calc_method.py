@@ -58,7 +58,7 @@ def main(db_id: int, db_dir: str, functional_str: str, grid_spacing: float = 0.1
         mixer=mixer,
         charge=charge,
         txt=f'{functional_str}/{structure_str}_{adsorbate_str}'+'.txt',
-        **hubberd_U_dict
+        **hubberd_U_dict,
         **eigensolver_kwargs
     )
     calc_pickle = str(pickle.dumps(calc_par_dict))
